@@ -1,0 +1,15 @@
+# Development override - adds direct ports for debugging
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    ports:
+      - "8000:8000"
+
+  frontend:
+    ports:
+      - "5173:5173"
+
+  db:
+    ports:
+      - "5432:5432"
