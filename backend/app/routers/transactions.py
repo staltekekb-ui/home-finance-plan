@@ -12,8 +12,10 @@ from app.schemas import (
     MonthlyReport,
     CategoryEnum,
 )
+from app.logging_config import get_logger
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
+logger = get_logger(__name__)
 
 
 @router.post("/", response_model=TransactionResponse)
@@ -22,6 +24,12 @@ def create_transaction(
     account_id: Optional[int] = Query(None, description="ID счёта"),
     db: Session = Depends(get_db),
 ):
+    logger.info(f"Creating transaction", extra={
+        "amount": transaction.amount,
+        "description": transaction.description,
+        "date": str(transaction.date),
+        "account_id": account_id,
+    })
     data = transaction.model_dump()
     if account_id:
         data['account_id'] = account_id
@@ -34,6 +42,7 @@ def create_transaction(
     db.add(db_transaction)
     db.commit()
     db.refresh(db_transaction)
+    logger.info(f"Transaction created successfully", extra={"transaction_id": db_transaction.id})
     return db_transaction
 
 
@@ -90,16 +99,22 @@ def get_transaction(transaction_id: int, db: Session = Depends(get_db)):
 def update_transaction(
     transaction_id: int, transaction: TransactionUpdate, db: Session = Depends(get_db)
 ):
+    logger.info(f"Updating transaction {transaction_id}", extra={
+        "update_data": transaction.model_dump(exclude_unset=True)
+    })
     db_transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
     if not db_transaction:
+        logger.warning(f"Transaction not found: {transaction_id}")
         raise HTTPException(status_code=404, detail="Транзакция не найдена")
 
     update_data = transaction.model_dump(exclude_unset=True)
+    logger.info(f"Update data parsed", extra={"fields": list(update_data.keys()), "date": str(update_data.get('date'))})
     for field, value in update_data.items():
         setattr(db_transaction, field, value)
 
     db.commit()
     db.refresh(db_transaction)
+    logger.info(f"Transaction updated successfully", extra={"transaction_id": transaction_id})
     return db_transaction
 
 

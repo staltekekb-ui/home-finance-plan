@@ -49,6 +49,10 @@ export default function HomePage() {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       setEditTarget(null);
     },
+    onError: (error: Error) => {
+      console.error('Failed to update transaction:', error);
+      alert(`Ошибка обновления: ${error.message}`);
+    },
   });
 
   const repeatMutation = useMutation({

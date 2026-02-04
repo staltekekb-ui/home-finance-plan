@@ -24,6 +24,7 @@ export default function EditTransactionModal({
   const [date, setDate] = useState('');
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (transaction) {
@@ -33,6 +34,7 @@ export default function EditTransactionModal({
       setDate(transaction.date);
       setErrors({});
       setTouched({});
+      setSaveError(null);
     }
   }, [transaction]);
 
@@ -54,6 +56,7 @@ export default function EditTransactionModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSaveError(null);
     const validationErrors = validate();
     setErrors(validationErrors);
     setTouched({ amount: true, description: true, date: true });
@@ -62,12 +65,16 @@ export default function EditTransactionModal({
       return;
     }
 
-    onSave(transaction.id, {
-      amount: parseFloat(amount),
-      description,
-      category: category || undefined,
-      date,
-    });
+    try {
+      onSave(transaction.id, {
+        amount: parseFloat(amount),
+        description,
+        category: category || undefined,
+        date,
+      });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Ошибка сохранения');
+    }
   };
 
   return (
@@ -126,6 +133,11 @@ export default function EditTransactionModal({
             />
             {touched.date && <FormError message={errors.date} />}
           </div>
+          {saveError && (
+            <div className="text-red-600 text-sm">
+              Ошибка: {saveError}
+            </div>
+          )}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"

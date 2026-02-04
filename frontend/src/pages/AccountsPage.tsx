@@ -281,7 +281,7 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           <select
             className="w-full border rounded px-3 py-2"
             value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
+            onChange={(e) => setAccountType(e.target.value as 'cash' | 'card' | 'savings')}
           >
             <option value="card">Карта</option>
             <option value="cash">Наличные</option>

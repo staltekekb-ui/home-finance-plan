@@ -124,15 +124,15 @@ def test_delete_account_with_transactions(client, sample_account, sample_transac
     create_response = client.post("/api/accounts/", json=sample_account)
     account_id = create_response.json()["id"]
 
-    sample_transaction["account_id"] = account_id
-    client.post("/api/transactions/", json=sample_transaction)
+    # Pass account_id as query parameter, not in body
+    client.post(f"/api/transactions/?account_id={account_id}", json=sample_transaction)
 
     response = client.delete(f"/api/accounts/{account_id}")
     assert response.status_code == 200
     assert "деактивирован" in response.json()["message"]
 
     get_response = client.get(f"/api/accounts/{account_id}")
-    assert get_response.status_code == 200
+    assert response.status_code == 200
     assert get_response.json()["is_active"] == False
 
 

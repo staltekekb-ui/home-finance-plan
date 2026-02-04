@@ -15,6 +15,7 @@ export default function UploadPage() {
   const [parsed, setParsed] = useState<ParsedTransaction | null>(null);
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
   const [form, setForm] = useState<Partial<TransactionCreate>>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -58,9 +59,13 @@ export default function UploadPage() {
     mutationFn: createTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setSaveError(null);
       if (batchResults.length === 0) {
         navigate('/transactions');
       }
+    },
+    onError: (error: Error) => {
+      setSaveError(error.message);
     },
   });
 
@@ -68,6 +73,7 @@ export default function UploadPage() {
     setParsed(null);
     setBatchResults([]);
     setForm({});
+    setSaveError(null);
     uploadMutation.mutate(file);
   };
 
@@ -75,13 +81,21 @@ export default function UploadPage() {
     setParsed(null);
     setBatchResults([]);
     setForm({});
+    setSaveError(null);
     batchUploadMutation.mutate(files);
   };
 
   const handleSave = () => {
-    if (form.amount && form.description && form.date) {
-      saveMutation.mutate(form as TransactionCreate);
+    setSaveError(null);
+    if (!form.amount || !form.description || !form.date) {
+      setSaveError('Заполните все обязательные поля');
+      return;
     }
+    if (form.amount <= 0) {
+      setSaveError('Сумма должна быть больше нуля');
+      return;
+    }
+    saveMutation.mutate(form as TransactionCreate);
   };
 
   const handleSaveBatchItem = (index: number, data: ParsedTransaction) => {
@@ -99,9 +113,11 @@ export default function UploadPage() {
   };
 
   const handleManualSave = (data: TransactionCreate) => {
+    setSaveError(null);
     saveMutation.mutate(data, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        setSaveError(null);
       }
     });
   };
@@ -206,6 +222,12 @@ export default function UploadPage() {
                 >
                   {saveMutation.isPending ? 'Сохранение...' : 'Сохранить транзакцию'}
                 </button>
+
+                {saveError && (
+                  <div className="text-red-600 text-sm mt-2">
+                    Ошибка: {saveError}
+                  </div>
+                )}
               </div>
             </div>
           )}

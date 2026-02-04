@@ -17,6 +17,11 @@ router = APIRouter(prefix="/api/savings", tags=["savings"])
 @router.post("/goals", response_model=SavingsGoalResponse)
 def create_goal(goal: SavingsGoalCreate, db: Session = Depends(get_db)):
     db_goal = SavingsGoal(**goal.model_dump())
+
+    # Auto-complete if current >= target
+    if db_goal.current_amount >= db_goal.target_amount:
+        db_goal.is_completed = True
+
     db.add(db_goal)
     db.commit()
     db.refresh(db_goal)

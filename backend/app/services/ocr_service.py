@@ -51,15 +51,28 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
     }
     media_type = media_types.get(extension, "image/png")
 
-    prompt = """Проанализируй этот скриншот из банковского приложения.
+    # Get current date for context
+    today = date.today()
+    current_year = today.year
+    current_month = today.month
+    current_day = today.day
+
+    prompt = f"""Проанализируй этот скриншот из банковского приложения.
 Извлеки информацию о транзакции и верни ТОЛЬКО JSON в формате:
-{
+{{
     "amount": <сумма как число, без валюты>,
     "description": "<описание/название магазина/получатель>",
     "date": "<дата в формате YYYY-MM-DD>"
-}
+}}
 
-Если дата не видна, используй сегодняшнюю дату.
+ВАЖНЫЕ ПРАВИЛА ДЛЯ ДАТЫ:
+- Сегодня: {today.strftime('%Y-%m-%d')} (год: {current_year}, месяц: {current_month}, день: {current_day})
+- Если на скриншоте указан только день и месяц (например "29 фев" или "29.02"), используй ТЕКУЩИЙ ГОД {current_year}
+- Если на скриншоте указан только день (например "29"), используй ТЕКУЩИЙ МЕСЯЦ {current_month} и ГОД {current_year}
+- Если дата вообще не видна, используй сегодняшнюю дату: {today.strftime('%Y-%m-%d')}
+- Если видно, что транзакция была вчера/позавчера, вычти соответствующее количество дней от сегодняшней даты
+- НИКОГДА не используй старые года (2024, 2023 и т.д.) если год явно не написан на скриншоте
+
 Верни ТОЛЬКО JSON, без дополнительного текста."""
 
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -97,15 +110,22 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
     response_text = result["choices"][0]["message"]["content"].strip()
     raw_response = response_text
 
+    # Log the raw response for debugging
+    print(f"[OCR DEBUG] Raw response from API: {raw_response}")
+
     if response_text.startswith("```"):
         response_text = response_text.split("```")[1]
         if response_text.startswith("json"):
             response_text = response_text[4:]
         response_text = response_text.strip()
 
+    print(f"[OCR DEBUG] Cleaned response: {response_text}")
+
     try:
         data = json.loads(response_text)
-    except json.JSONDecodeError:
+        print(f"[OCR DEBUG] Parsed data: {data}")
+    except json.JSONDecodeError as e:
+        print(f"[OCR DEBUG] JSON parsing error: {e}")
         raise ValueError(
             f"Не удалось распознать транзакцию на изображении. "
             f"Убедитесь, что это скриншот банковского приложения с информацией о платеже. "

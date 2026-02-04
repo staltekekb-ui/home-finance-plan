@@ -91,12 +91,15 @@ def delete_recurring_payment(payment_id: int, db: Session = Depends(get_db)):
     return {"message": "Повторяющийся платёж удалён"}
 
 
-@router.post("/{payment_id}/execute", response_model=TransactionResponse)
+@router.post("/{payment_id}/execute")
 def execute_recurring_payment(payment_id: int, db: Session = Depends(get_db)):
     """Execute a recurring payment - create a transaction and update next_date"""
     db_payment = db.query(RecurringPayment).filter(RecurringPayment.id == payment_id).first()
     if not db_payment:
         raise HTTPException(status_code=404, detail="Повторяющийся платёж не найден")
+
+    if not db_payment.is_active:
+        raise HTTPException(status_code=400, detail="Платёж не активен")
 
     # Create transaction
     transaction = Transaction(
@@ -117,7 +120,12 @@ def execute_recurring_payment(payment_id: int, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(transaction)
-    return transaction
+    db.refresh(db_payment)
+
+    return {
+        "transaction": transaction,
+        "recurring_payment": db_payment,
+    }
 
 
 @router.post("/from-transaction/{transaction_id}", response_model=RecurringPaymentResponse)
