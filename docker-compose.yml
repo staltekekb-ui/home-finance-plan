@@ -24,7 +24,8 @@ services:
     build: ./backend
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/home_finance
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-anthropic/claude-sonnet-4}
     depends_on:
       - db
     volumes:
