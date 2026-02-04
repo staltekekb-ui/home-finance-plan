@@ -4,7 +4,7 @@ from sqlalchemy import func, extract
 from datetime import date
 from typing import Optional
 from app.database import get_db
-from app.models import Transaction
+from app.models import Transaction, Account
 from app.schemas import (
     TransactionCreate,
     TransactionUpdate,
@@ -17,8 +17,20 @@ router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
 
 @router.post("/", response_model=TransactionResponse)
-def create_transaction(transaction: TransactionCreate, db: Session = Depends(get_db)):
-    db_transaction = Transaction(**transaction.model_dump())
+def create_transaction(
+    transaction: TransactionCreate,
+    account_id: Optional[int] = Query(None, description="ID счёта"),
+    db: Session = Depends(get_db),
+):
+    data = transaction.model_dump()
+    if account_id:
+        data['account_id'] = account_id
+        # Update account balance
+        account = db.query(Account).filter(Account.id == account_id).first()
+        if account:
+            account.balance -= transaction.amount
+
+    db_transaction = Transaction(**data)
     db.add(db_transaction)
     db.commit()
     db.refresh(db_transaction)
@@ -30,6 +42,10 @@ def get_transactions(
     date_from: Optional[date] = Query(None, description="Начальная дата фильтра"),
     date_to: Optional[date] = Query(None, description="Конечная дата фильтра"),
     category: Optional[str] = Query(None, description="Фильтр по категории"),
+    search: Optional[str] = Query(None, description="Поиск по описанию"),
+    account_id: Optional[int] = Query(None, description="Фильтр по счёту"),
+    sort_by: Optional[str] = Query("date", description="Поле для сортировки: date, amount, description"),
+    sort_order: Optional[str] = Query("desc", description="Порядок сортировки: asc, desc"),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
@@ -42,8 +58,19 @@ def get_transactions(
         query = query.filter(Transaction.date <= date_to)
     if category:
         query = query.filter(Transaction.category == category)
+    if search:
+        query = query.filter(Transaction.description.ilike(f"%{search}%"))
+    if account_id:
+        query = query.filter(Transaction.account_id == account_id)
 
-    return query.order_by(Transaction.date.desc()).offset(skip).limit(limit).all()
+    # Sorting
+    sort_column = getattr(Transaction, sort_by, Transaction.date)
+    if sort_order == "asc":
+        query = query.order_by(sort_column.asc())
+    else:
+        query = query.order_by(sort_column.desc())
+
+    return query.offset(skip).limit(limit).all()
 
 
 @router.get("/categories")

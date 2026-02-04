@@ -3,9 +3,11 @@ import type { Transaction } from '../types';
 interface Props {
   transaction: Transaction;
   onDelete: () => void;
+  onEdit: () => void;
+  onRepeat?: () => void;
 }
 
-export default function TransactionCard({ transaction, onDelete }: Props) {
+export default function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
   const formattedDate = new Date(transaction.date).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'short',
@@ -30,12 +32,28 @@ export default function TransactionCard({ transaction, onDelete }: Props) {
           <div className="text-lg font-bold text-red-600 whitespace-nowrap">
             -{transaction.amount.toLocaleString('ru-RU')} ₽
           </div>
-          <button
-            onClick={onDelete}
-            className="text-gray-400 hover:text-red-600 text-sm whitespace-nowrap"
-          >
-            Удалить
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={onEdit}
+              className="text-gray-400 hover:text-blue-600 text-sm whitespace-nowrap"
+            >
+              Изменить
+            </button>
+            {onRepeat && (
+              <button
+                onClick={onRepeat}
+                className="text-gray-400 hover:text-green-600 text-sm whitespace-nowrap"
+              >
+                Повторять
+              </button>
+            )}
+            <button
+              onClick={onDelete}
+              className="text-gray-400 hover:text-red-600 text-sm whitespace-nowrap"
+            >
+              Удалить
+            </button>
+          </div>
         </div>
       </div>
     </div>

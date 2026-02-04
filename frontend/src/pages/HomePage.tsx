@@ -1,13 +1,19 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTransactions, getCategories, deleteTransaction, exportToExcel } from '../api/client';
-import type { TransactionFilters } from '../types';
+import { getTransactions, getCategories, deleteTransaction, updateTransaction, exportToExcel, createRecurringFromTransaction } from '../api/client';
+import type { Transaction, TransactionFilters } from '../types';
 import TransactionList from '../components/TransactionList';
+import ConfirmModal from '../components/ConfirmModal';
+import EditTransactionModal from '../components/EditTransactionModal';
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [exporting, setExporting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [editTarget, setEditTarget] = useState<Transaction | null>(null);
 
   const handleExport = async () => {
     setExporting(true);
@@ -32,6 +38,24 @@ export default function HomePage() {
     mutationFn: deleteTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setDeleteTarget(null);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof updateTransaction>[1] }) =>
+      updateTransaction(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setEditTarget(null);
+    },
+  });
+
+  const repeatMutation = useMutation({
+    mutationFn: (transactionId: number) => createRecurringFromTransaction(transactionId, 'monthly'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring'] });
+      navigate('/recurring');
     },
   });
 
@@ -47,8 +71,18 @@ export default function HomePage() {
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
-        <h2 className="font-medium text-gray-700">Фильтры</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className="font-medium text-gray-700">Фильтры и поиск</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm text-gray-600 mb-1">Поиск</label>
+            <input
+              type="text"
+              placeholder="Поиск по описанию..."
+              className="w-full border rounded px-3 py-2"
+              value={filters.search || ''}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
+            />
+          </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">С даты</label>
             <input
@@ -82,6 +116,29 @@ export default function HomePage() {
               ))}
             </select>
           </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Сортировка</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={filters.sort_by || 'date'}
+              onChange={(e) => setFilters({ ...filters, sort_by: e.target.value as 'date' | 'amount' | 'description' })}
+            >
+              <option value="date">По дате</option>
+              <option value="amount">По сумме</option>
+              <option value="description">По описанию</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Порядок</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={filters.sort_order || 'desc'}
+              onChange={(e) => setFilters({ ...filters, sort_order: e.target.value as 'asc' | 'desc' })}
+            >
+              <option value="desc">По убыванию</option>
+              <option value="asc">По возрастанию</option>
+            </select>
+          </div>
         </div>
         <div className="flex gap-4">
           <button
@@ -109,9 +166,30 @@ export default function HomePage() {
       ) : (
         <TransactionList
           transactions={transactions}
-          onDelete={(id) => deleteMutation.mutate(id)}
+          onDelete={(id) => setDeleteTarget(id)}
+          onEdit={(transaction) => setEditTarget(transaction)}
+          onRepeat={(transaction) => repeatMutation.mutate(transaction.id)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="Удалить транзакцию?"
+        message="Эта операция необратима. Транзакция будет удалена навсегда."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        danger
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      <EditTransactionModal
+        isOpen={editTarget !== null}
+        transaction={editTarget}
+        categories={categories}
+        onSave={(id, data) => updateMutation.mutate({ id, data })}
+        onCancel={() => setEditTarget(null)}
+      />
     </div>
   );
 }
