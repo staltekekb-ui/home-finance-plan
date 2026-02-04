@@ -95,6 +95,7 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
         result = response.json()
 
     response_text = result["choices"][0]["message"]["content"].strip()
+    raw_response = response_text
 
     if response_text.startswith("```"):
         response_text = response_text.split("```")[1]
@@ -102,7 +103,14 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
             response_text = response_text[4:]
         response_text = response_text.strip()
 
-    data = json.loads(response_text)
+    try:
+        data = json.loads(response_text)
+    except json.JSONDecodeError:
+        raise ValueError(
+            f"Не удалось распознать транзакцию на изображении. "
+            f"Убедитесь, что это скриншот банковского приложения с информацией о платеже. "
+            f"Ответ модели: {raw_response[:200]}"
+        )
 
     if isinstance(data["date"], str):
         parsed_date = datetime.strptime(data["date"], "%Y-%m-%d").date()
