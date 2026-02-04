@@ -18,7 +18,7 @@
 - Python 3.12
 - FastAPI
 - PostgreSQL + SQLAlchemy
-- Claude Vision API (Anthropic)
+- OpenRouter API (доступ к Claude, GPT-4 и другим моделям)
 
 **Frontend:**
 - React 18 + TypeScript
@@ -46,11 +46,14 @@ cd home-finance-plan
 cp .env.example .env
 ```
 
-Для полноценного распознавания скриншотов добавьте API-ключ Anthropic в `.env`:
+Для распознавания скриншотов добавьте API-ключ OpenRouter в `.env`:
 
 ```
-ANTHROPIC_API_KEY=your-api-key
+OPENROUTER_API_KEY=your-api-key
+OPENROUTER_MODEL=anthropic/claude-sonnet-4
 ```
+
+Доступные модели: `anthropic/claude-sonnet-4`, `openai/gpt-4o`, `google/gemini-pro-vision` и другие.
 
 Без ключа приложение работает в mock-режиме с тестовыми данными.
 

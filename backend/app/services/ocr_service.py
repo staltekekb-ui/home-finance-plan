@@ -1,4 +1,7 @@
 import random
+import base64
+import json
+import httpx
 from datetime import date, datetime
 from pathlib import Path
 from app.config import get_settings
@@ -18,11 +21,13 @@ MOCK_TRANSACTIONS = [
     {"amount": 5500.00, "description": "МВидео"},
 ]
 
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
 
 async def parse_screenshot(image_path: str) -> ParsedTransaction:
     """Распознаёт скриншот банковского приложения с автокатегоризацией."""
 
-    if not settings.anthropic_api_key:
+    if not settings.openrouter_api_key:
         mock = random.choice(MOCK_TRANSACTIONS)
         category = MOCK_CATEGORIES.get(mock["description"])
         return ParsedTransaction(
@@ -32,10 +37,6 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
             date=date.today(),
             raw_text="[MOCK MODE] API ключ не настроен"
         )
-
-    import anthropic
-    import base64
-    import json
 
     image_data = Path(image_path).read_bytes()
     base64_image = base64.standard_b64encode(image_data).decode("utf-8")
@@ -50,26 +51,7 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
     }
     media_type = media_types.get(extension, "image/png")
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1024,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": base64_image,
-                        },
-                    },
-                    {
-                        "type": "text",
-                        "text": """Проанализируй этот скриншот из банковского приложения.
+    prompt = """Проанализируй этот скриншот из банковского приложения.
 Извлеки информацию о транзакции и верни ТОЛЬКО JSON в формате:
 {
     "amount": <сумма как число, без валюты>,
@@ -79,13 +61,40 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
 
 Если дата не видна, используй сегодняшнюю дату.
 Верни ТОЛЬКО JSON, без дополнительного текста."""
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            OPENROUTER_URL,
+            headers={
+                "Authorization": f"Bearer {settings.openrouter_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": settings.openrouter_model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{media_type};base64,{base64_image}"
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
                     }
                 ],
+                "max_tokens": 1024,
             }
-        ],
-    )
+        )
+        response.raise_for_status()
+        result = response.json()
 
-    response_text = message.content[0].text.strip()
+    response_text = result["choices"][0]["message"]["content"].strip()
 
     if response_text.startswith("```"):
         response_text = response_text.split("```")[1]
