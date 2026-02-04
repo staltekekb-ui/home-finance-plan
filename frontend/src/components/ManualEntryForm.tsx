@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Category, TransactionCreate } from '../types';
+import FormError from './FormError';
+import { validateAmount, validateRequired, validateDate, hasErrors, ValidationErrors } from '../utils/validation';
 
 interface Props {
   categories: Category[];
@@ -14,6 +16,8 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const suggestions = useMemo(() => {
     if (!description || description.length < 2) return [];
@@ -23,9 +27,29 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
       .slice(0, 5);
   }, [description, recentDescriptions]);
 
+  const validate = (): ValidationErrors => {
+    return {
+      amount: validateAmount(amount),
+      description: validateRequired(description, 'Описание'),
+      date: validateDate(date),
+    };
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const newErrors = validate();
+    setErrors(newErrors);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !description || !date) return;
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ amount: true, description: true, date: true });
+
+    if (hasErrors(validationErrors)) {
+      return;
+    }
 
     onSave({
       amount: parseFloat(amount),
@@ -38,6 +62,8 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
     setDescription('');
     setCategory('');
     setDate(new Date().toISOString().split('T')[0]);
+    setErrors({});
+    setTouched({});
   };
 
   const selectSuggestion = (text: string) => {
@@ -54,20 +80,21 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
         <input
           type="number"
           step="0.01"
-          min="0"
-          className="w-full border rounded px-3 py-2"
+          min="0.01"
+          className={`w-full border rounded px-3 py-2 ${touched.amount && errors.amount ? 'border-red-500' : ''}`}
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          required
+          onBlur={() => handleBlur('amount')}
         />
+        {touched.amount && <FormError message={errors.amount} />}
       </div>
 
       <div className="relative">
         <label className="block text-sm text-gray-600 mb-1">Описание *</label>
         <input
           type="text"
-          className="w-full border rounded px-3 py-2"
+          className={`w-full border rounded px-3 py-2 ${touched.description && errors.description ? 'border-red-500' : ''}`}
           placeholder="Например: Магнит, продукты"
           value={description}
           onChange={(e) => {
@@ -75,9 +102,12 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
             setShowSuggestions(true);
           }}
           onFocus={() => setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-          required
+          onBlur={() => {
+            setTimeout(() => setShowSuggestions(false), 150);
+            handleBlur('description');
+          }}
         />
+        {touched.description && <FormError message={errors.description} />}
         {showSuggestions && suggestions.length > 0 && (
           <ul className="absolute z-10 w-full bg-white border rounded-b shadow-lg mt-0">
             {suggestions.map((s, i) => (
@@ -113,16 +143,17 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
         <label className="block text-sm text-gray-600 mb-1">Дата *</label>
         <input
           type="date"
-          className="w-full border rounded px-3 py-2"
+          className={`w-full border rounded px-3 py-2 ${touched.date && errors.date ? 'border-red-500' : ''}`}
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          required
+          onBlur={() => handleBlur('date')}
         />
+        {touched.date && <FormError message={errors.date} />}
       </div>
 
       <button
         type="submit"
-        disabled={isSaving || !amount || !description || !date}
+        disabled={isSaving}
         className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
       >
         {isSaving ? 'Сохранение...' : 'Сохранить транзакцию'}

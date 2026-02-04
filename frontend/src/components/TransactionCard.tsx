@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Transaction } from '../types';
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
   onRepeat?: () => void;
 }
 
-export default function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
+function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
   const formattedDate = new Date(transaction.date).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'short',
@@ -59,3 +60,5 @@ export default function TransactionCard({ transaction, onDelete, onEdit, onRepea
     </div>
   );
 }
+
+export default memo(TransactionCard);

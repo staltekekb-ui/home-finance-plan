@@ -11,6 +11,8 @@ import {
 import type { RecurringPayment, RecurringPaymentCreate, Category } from '../types';
 import RecurringPaymentCard from '../components/RecurringPaymentCard';
 import ConfirmModal from '../components/ConfirmModal';
+import FormError from '../components/FormError';
+import { validateAmount, validateRequired, validateDate, validateDayOfMonth, hasErrors, ValidationErrors } from '../utils/validation';
 
 export default function RecurringPage() {
   const queryClient = useQueryClient();
@@ -165,9 +167,34 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
     initialData?.next_date || new Date().toISOString().split('T')[0]
   );
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (): ValidationErrors => {
+    return {
+      amount: validateAmount(amount),
+      description: validateRequired(description, 'Описание'),
+      nextDate: validateDate(nextDate),
+      dayOfMonth: frequency === 'monthly' ? validateDayOfMonth(dayOfMonth) : undefined,
+    };
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const newErrors = validate();
+    setErrors(newErrors);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ amount: true, description: true, nextDate: true, dayOfMonth: true });
+
+    if (hasErrors(validationErrors)) {
+      return;
+    }
+
     const data: any = {
       amount: parseFloat(amount),
       description,
@@ -196,21 +223,24 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
           <input
             type="number"
             step="0.01"
-            className="w-full border rounded px-3 py-2"
+            min="0.01"
+            className={`w-full border rounded px-3 py-2 ${touched.amount && errors.amount ? 'border-red-500' : ''}`}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            required
+            onBlur={() => handleBlur('amount')}
           />
+          {touched.amount && <FormError message={errors.amount} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Описание *</label>
           <input
             type="text"
-            className="w-full border rounded px-3 py-2"
+            className={`w-full border rounded px-3 py-2 ${touched.description && errors.description ? 'border-red-500' : ''}`}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            required
+            onBlur={() => handleBlur('description')}
           />
+          {touched.description && <FormError message={errors.description} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Категория</label>
@@ -247,22 +277,25 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
               type="number"
               min="1"
               max="31"
-              className="w-full border rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${touched.dayOfMonth && errors.dayOfMonth ? 'border-red-500' : ''}`}
               value={dayOfMonth}
               onChange={(e) => setDayOfMonth(e.target.value)}
+              onBlur={() => handleBlur('dayOfMonth')}
               placeholder="1-31"
             />
+            {touched.dayOfMonth && <FormError message={errors.dayOfMonth} />}
           </div>
         )}
         <div>
           <label className="block text-sm text-gray-600 mb-1">Следующая дата *</label>
           <input
             type="date"
-            className="w-full border rounded px-3 py-2"
+            className={`w-full border rounded px-3 py-2 ${touched.nextDate && errors.nextDate ? 'border-red-500' : ''}`}
             value={nextDate}
             onChange={(e) => setNextDate(e.target.value)}
-            required
+            onBlur={() => handleBlur('nextDate')}
           />
+          {touched.nextDate && <FormError message={errors.nextDate} />}
         </div>
         {initialData && (
           <div className="flex items-center gap-2">

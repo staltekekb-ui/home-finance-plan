@@ -9,6 +9,8 @@ import {
 } from '../api/client';
 import type { Account, AccountCreate } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
+import FormError from '../components/FormError';
+import { validateRequired, hasErrors, ValidationErrors } from '../utils/validation';
 
 const accountTypeLabels: Record<string, string> = {
   cash: 'Наличные',
@@ -217,13 +219,35 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
   const [currency, setCurrency] = useState(initialData?.currency || 'RUB');
   const [color, setColor] = useState(initialData?.color || 'blue');
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (): ValidationErrors => {
+    return {
+      name: validateRequired(name, 'Название'),
+    };
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const newErrors = validate();
+    setErrors(newErrors);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ name: true });
+
+    if (hasErrors(validationErrors)) {
+      return;
+    }
+
     const data: any = {
       name,
       account_type: accountType,
-      balance: parseFloat(balance),
+      balance: parseFloat(balance || '0'),
       currency,
       color,
     };
@@ -244,12 +268,13 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           <label className="block text-sm text-gray-600 mb-1">Название *</label>
           <input
             type="text"
-            className="w-full border rounded px-3 py-2"
+            className={`w-full border rounded px-3 py-2 ${touched.name && errors.name ? 'border-red-500' : ''}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onBlur={() => handleBlur('name')}
             placeholder="Например: Сбербанк"
-            required
           />
+          {touched.name && <FormError message={errors.name} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Тип счёта *</label>

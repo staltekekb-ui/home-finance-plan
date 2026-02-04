@@ -1,0 +1,51 @@
+# Alembic Migrations
+
+This directory contains database migration scripts managed by Alembic.
+
+## Usage
+
+### Generate a new migration
+```bash
+# Auto-generate migration from model changes
+alembic revision --autogenerate -m "description of changes"
+
+# Create an empty migration
+alembic revision -m "description of changes"
+```
+
+### Apply migrations
+```bash
+# Apply all pending migrations
+alembic upgrade head
+
+# Apply specific migration
+alembic upgrade <revision_id>
+```
+
+### Rollback migrations
+```bash
+# Rollback one step
+alembic downgrade -1
+
+# Rollback to specific revision
+alembic downgrade <revision_id>
+
+# Rollback all migrations
+alembic downgrade base
+```
+
+### View migration status
+```bash
+# Show current revision
+alembic current
+
+# Show migration history
+alembic history
+```
+
+## Docker Usage
+
+When running in Docker, use:
+```bash
+docker-compose exec backend alembic upgrade head
+```

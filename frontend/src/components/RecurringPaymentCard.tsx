@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { RecurringPayment } from '../types';
 
 interface Props {
@@ -14,7 +15,7 @@ const frequencyLabels: Record<string, string> = {
   yearly: 'Ежегодно',
 };
 
-export default function RecurringPaymentCard({ payment, onExecute, onEdit, onDelete }: Props) {
+function RecurringPaymentCard({ payment, onExecute, onEdit, onDelete }: Props) {
   const nextDate = new Date(payment.next_date).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'short',
@@ -71,3 +72,5 @@ export default function RecurringPaymentCard({ payment, onExecute, onEdit, onDel
     </div>
   );
 }
+
+export default memo(RecurringPaymentCard);

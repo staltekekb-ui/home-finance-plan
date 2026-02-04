@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface Props {
   isOpen: boolean;
   title: string;
@@ -9,7 +11,7 @@ interface Props {
   danger?: boolean;
 }
 
-export default function ConfirmModal({
+function ConfirmModal({
   isOpen,
   title,
   message,
@@ -49,3 +51,5 @@ export default function ConfirmModal({
     </div>
   );
 }
+
+export default memo(ConfirmModal);

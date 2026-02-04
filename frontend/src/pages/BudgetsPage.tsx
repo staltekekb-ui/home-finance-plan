@@ -10,6 +10,8 @@ import {
 import type { BudgetStatus, BudgetCreate, Category } from '../types';
 import ProgressBar from '../components/ProgressBar';
 import ConfirmModal from '../components/ConfirmModal';
+import FormError from '../components/FormError';
+import { validateRequired, validatePositiveNumber, validatePercentage, hasErrors, ValidationErrors } from '../utils/validation';
 
 export default function BudgetsPage() {
   const queryClient = useQueryClient();
@@ -199,9 +201,33 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
   const [alertThreshold, setAlertThreshold] = useState(
     ((initialData?.alert_threshold || 0.8) * 100).toString()
   );
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (): ValidationErrors => {
+    return {
+      category: initialData ? undefined : validateRequired(category, 'Категория'),
+      monthlyLimit: validatePositiveNumber(monthlyLimit, 'Лимит'),
+      alertThreshold: validatePercentage(alertThreshold),
+    };
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const newErrors = validate();
+    setErrors(newErrors);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ category: true, monthlyLimit: true, alertThreshold: true });
+
+    if (hasErrors(validationErrors)) {
+      return;
+    }
+
     onSubmit({
       category,
       monthly_limit: parseFloat(monthlyLimit),
@@ -219,11 +245,11 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
         <div>
           <label className="block text-sm text-gray-600 mb-1">Категория *</label>
           <select
-            className="w-full border rounded px-3 py-2"
+            className={`w-full border rounded px-3 py-2 ${touched.category && errors.category ? 'border-red-500' : ''}`}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            onBlur={() => handleBlur('category')}
             disabled={!!initialData}
-            required
           >
             <option value="">Выберите категорию</option>
             {categories.map((cat) => (
@@ -232,18 +258,21 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
               </option>
             ))}
           </select>
+          {touched.category && <FormError message={errors.category} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Месячный лимит *</label>
           <input
             type="number"
             step="100"
-            className="w-full border rounded px-3 py-2"
+            min="1"
+            className={`w-full border rounded px-3 py-2 ${touched.monthlyLimit && errors.monthlyLimit ? 'border-red-500' : ''}`}
             value={monthlyLimit}
             onChange={(e) => setMonthlyLimit(e.target.value)}
+            onBlur={() => handleBlur('monthlyLimit')}
             placeholder="10000"
-            required
           />
+          {touched.monthlyLimit && <FormError message={errors.monthlyLimit} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Порог предупреждения (%)</label>
@@ -251,11 +280,13 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
             type="number"
             min="1"
             max="100"
-            className="w-full border rounded px-3 py-2"
+            className={`w-full border rounded px-3 py-2 ${touched.alertThreshold && errors.alertThreshold ? 'border-red-500' : ''}`}
             value={alertThreshold}
             onChange={(e) => setAlertThreshold(e.target.value)}
+            onBlur={() => handleBlur('alertThreshold')}
             placeholder="80"
           />
+          {touched.alertThreshold && <FormError message={errors.alertThreshold} />}
         </div>
       </div>
 

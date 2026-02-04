@@ -13,6 +13,8 @@ import type { SavingsGoal, SavingsGoalCreate, MonthlySavingsStatus } from '../ty
 import ProgressBar from '../components/ProgressBar';
 import ConfirmModal from '../components/ConfirmModal';
 import SettingsModal from '../components/SettingsModal';
+import FormError from '../components/FormError';
+import { validateRequired, validatePositiveNumber, hasErrors, ValidationErrors } from '../utils/validation';
 
 export default function GoalsPage() {
   const queryClient = useQueryClient();
@@ -329,13 +331,45 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
   const [targetAmount, setTargetAmount] = useState(initialData?.target_amount.toString() || '');
   const [currentAmount, setCurrentAmount] = useState(initialData?.current_amount.toString() || '0');
   const [targetDate, setTargetDate] = useState(initialData?.target_date || '');
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validateCurrentAmount = (value: string): string | undefined => {
+    if (!value) return undefined;
+    const num = parseFloat(value);
+    if (isNaN(num)) return 'Некорректное значение';
+    if (num < 0) return 'Сумма не может быть отрицательной';
+    return undefined;
+  };
+
+  const validate = (): ValidationErrors => {
+    return {
+      name: validateRequired(name, 'Название'),
+      targetAmount: validatePositiveNumber(targetAmount, 'Целевая сумма'),
+      currentAmount: validateCurrentAmount(currentAmount),
+    };
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const newErrors = validate();
+    setErrors(newErrors);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ name: true, targetAmount: true, currentAmount: true });
+
+    if (hasErrors(validationErrors)) {
+      return;
+    }
+
     onSubmit({
       name,
       target_amount: parseFloat(targetAmount),
-      current_amount: parseFloat(currentAmount),
+      current_amount: parseFloat(currentAmount || '0'),
       target_date: targetDate || undefined,
     });
   };
@@ -351,35 +385,41 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           <label className="block text-sm text-gray-600 mb-1">Название *</label>
           <input
             type="text"
-            className="w-full border rounded px-3 py-2"
+            className={`w-full border rounded px-3 py-2 ${touched.name && errors.name ? 'border-red-500' : ''}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onBlur={() => handleBlur('name')}
             placeholder="Например: Отпуск в Турции"
-            required
           />
+          {touched.name && <FormError message={errors.name} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Целевая сумма *</label>
           <input
             type="number"
             step="1000"
-            className="w-full border rounded px-3 py-2"
+            min="1"
+            className={`w-full border rounded px-3 py-2 ${touched.targetAmount && errors.targetAmount ? 'border-red-500' : ''}`}
             value={targetAmount}
             onChange={(e) => setTargetAmount(e.target.value)}
+            onBlur={() => handleBlur('targetAmount')}
             placeholder="100000"
-            required
           />
+          {touched.targetAmount && <FormError message={errors.targetAmount} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Уже накоплено</label>
           <input
             type="number"
             step="100"
-            className="w-full border rounded px-3 py-2"
+            min="0"
+            className={`w-full border rounded px-3 py-2 ${touched.currentAmount && errors.currentAmount ? 'border-red-500' : ''}`}
             value={currentAmount}
             onChange={(e) => setCurrentAmount(e.target.value)}
+            onBlur={() => handleBlur('currentAmount')}
             placeholder="0"
           />
+          {touched.currentAmount && <FormError message={errors.currentAmount} />}
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">Дата достижения</label>

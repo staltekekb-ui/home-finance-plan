@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import type { Transaction } from '../types';
 import TransactionCard from './TransactionCard';
 
@@ -8,18 +9,27 @@ interface Props {
   onRepeat?: (transaction: Transaction) => void;
 }
 
-export default function TransactionList({ transactions, onDelete, onEdit, onRepeat }: Props) {
+function TransactionList({ transactions, onDelete, onEdit, onRepeat }: Props) {
+  const handleDelete = useCallback((id: number) => () => onDelete(id), [onDelete]);
+  const handleEdit = useCallback((transaction: Transaction) => () => onEdit(transaction), [onEdit]);
+  const handleRepeat = useCallback(
+    (transaction: Transaction) => (onRepeat ? () => onRepeat(transaction) : undefined),
+    [onRepeat]
+  );
+
   return (
     <div className="space-y-3">
       {transactions.map((transaction) => (
         <TransactionCard
           key={transaction.id}
           transaction={transaction}
-          onDelete={() => onDelete(transaction.id)}
-          onEdit={() => onEdit(transaction)}
-          onRepeat={onRepeat ? () => onRepeat(transaction) : undefined}
+          onDelete={handleDelete(transaction.id)}
+          onEdit={handleEdit(transaction)}
+          onRepeat={handleRepeat(transaction)}
         />
       ))}
     </div>
   );
 }
+
+export default memo(TransactionList);

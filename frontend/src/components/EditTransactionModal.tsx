@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Transaction, Category } from '../types';
+import FormError from './FormError';
+import { validateAmount, validateRequired, validateDate, hasErrors, ValidationErrors } from '../utils/validation';
 
 interface Props {
   isOpen: boolean;
@@ -20,6 +22,8 @@ export default function EditTransactionModal({
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState('');
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (transaction) {
@@ -27,13 +31,37 @@ export default function EditTransactionModal({
       setDescription(transaction.description);
       setCategory(transaction.category || '');
       setDate(transaction.date);
+      setErrors({});
+      setTouched({});
     }
   }, [transaction]);
 
   if (!isOpen || !transaction) return null;
 
+  const validate = (): ValidationErrors => {
+    return {
+      amount: validateAmount(amount),
+      description: validateRequired(description, 'Описание'),
+      date: validateDate(date),
+    };
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const newErrors = validate();
+    setErrors(newErrors);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ amount: true, description: true, date: true });
+
+    if (hasErrors(validationErrors)) {
+      return;
+    }
+
     onSave(transaction.id, {
       amount: parseFloat(amount),
       description,
@@ -49,25 +77,28 @@ export default function EditTransactionModal({
         <h3 className="text-lg font-semibold mb-4">Редактировать транзакцию</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Сумма</label>
+            <label className="block text-sm text-gray-600 mb-1">Сумма *</label>
             <input
               type="number"
               step="0.01"
-              className="w-full border rounded px-3 py-2"
+              min="0.01"
+              className={`w-full border rounded px-3 py-2 ${touched.amount && errors.amount ? 'border-red-500' : ''}`}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              required
+              onBlur={() => handleBlur('amount')}
             />
+            {touched.amount && <FormError message={errors.amount} />}
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Описание</label>
+            <label className="block text-sm text-gray-600 mb-1">Описание *</label>
             <input
               type="text"
-              className="w-full border rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${touched.description && errors.description ? 'border-red-500' : ''}`}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              required
+              onBlur={() => handleBlur('description')}
             />
+            {touched.description && <FormError message={errors.description} />}
           </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">Категория</label>
@@ -85,14 +116,15 @@ export default function EditTransactionModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Дата</label>
+            <label className="block text-sm text-gray-600 mb-1">Дата *</label>
             <input
               type="date"
-              className="w-full border rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${touched.date && errors.date ? 'border-red-500' : ''}`}
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              required
+              onBlur={() => handleBlur('date')}
             />
+            {touched.date && <FormError message={errors.date} />}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button
