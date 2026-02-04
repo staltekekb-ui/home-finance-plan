@@ -49,6 +49,9 @@
 ### Прочее
 - PWA — работает как приложение на телефоне
 - Адаптивный дизайн для мобильных устройств
+- Валидация форм с сообщениями об ошибках
+- Оптимизированный рендеринг (React.memo, useCallback)
+- Кэширование данных (React Query: 5 мин)
 
 ## Технологии
 
@@ -56,14 +59,16 @@
 - Python 3.12
 - FastAPI
 - PostgreSQL + SQLAlchemy
+- Alembic (миграции БД)
 - OpenRouter API (доступ к Claude, GPT-4 и другим моделям)
+- Структурированное логирование (JSON)
 
 **Frontend:**
 - React 18 + TypeScript
 - Vite
 - TailwindCSS
 - Recharts
-- React Query
+- React Query (TanStack Query)
 
 **Инфраструктура:**
 - Docker + Docker Compose
@@ -122,29 +127,74 @@ docker-compose up --build
 home-finance-plan/
 ├── backend/
 │   ├── app/
-│   │   ├── routers/
-│   │   │   ├── transactions.py  # CRUD транзакций
-│   │   │   ├── upload.py        # Загрузка скриншотов
-│   │   │   ├── reports.py       # Отчёты
-│   │   │   ├── export.py        # Экспорт в Excel
-│   │   │   ├── recurring.py     # Повторяющиеся платежи
-│   │   │   ├── budgets.py       # Бюджеты
-│   │   │   ├── savings.py       # Цели накоплений
-│   │   │   ├── settings.py      # Настройки пользователя
-│   │   │   ├── dashboard.py     # Dashboard API
-│   │   │   └── accounts.py      # Счета
-│   │   ├── services/            # OCR, категоризация
-│   │   ├── models.py            # SQLAlchemy модели
-│   │   └── schemas.py           # Pydantic схемы
-│   └── tests/                   # Unit-тесты
+│   │   ├── routers/              # API эндпоинты
+│   │   │   ├── transactions.py   # CRUD транзакций
+│   │   │   ├── upload.py         # Загрузка скриншотов
+│   │   │   ├── reports.py        # Отчёты
+│   │   │   ├── export.py         # Экспорт в Excel
+│   │   │   ├── recurring.py      # Повторяющиеся платежи
+│   │   │   ├── budgets.py        # Бюджеты
+│   │   │   ├── savings.py        # Цели накоплений
+│   │   │   ├── settings.py       # Настройки пользователя
+│   │   │   ├── dashboard.py      # Dashboard API
+│   │   │   └── accounts.py       # Счета
+│   │   ├── services/             # Бизнес-логика
+│   │   │   ├── ocr_service.py    # Распознавание скриншотов
+│   │   │   └── categorizer.py    # Автокатегоризация
+│   │   ├── models.py             # SQLAlchemy модели
+│   │   ├── schemas.py            # Pydantic схемы
+│   │   ├── database.py           # Подключение к БД
+│   │   ├── config.py             # Настройки приложения
+│   │   ├── logging_config.py     # Конфигурация логирования
+│   │   ├── middleware.py         # HTTP middleware
+│   │   └── main.py               # Точка входа FastAPI
+│   ├── alembic/                  # Миграции базы данных
+│   │   ├── versions/             # Файлы миграций
+│   │   └── env.py                # Конфигурация Alembic
+│   ├── tests/                    # Unit-тесты
+│   │   ├── test_transactions.py
+│   │   ├── test_budgets.py
+│   │   ├── test_savings.py
+│   │   ├── test_accounts.py
+│   │   ├── test_recurring.py
+│   │   ├── test_dashboard.py
+│   │   └── test_settings.py
+│   ├── requirements.txt
+│   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── components/          # React компоненты
-│   │   ├── pages/               # Страницы приложения
-│   │   ├── api/                 # API клиент
-│   │   └── types/               # TypeScript типы
-│   └── public/                  # PWA иконки
-├── nginx/                       # Конфигурация reverse proxy
+│   │   ├── components/           # React компоненты
+│   │   │   ├── TransactionCard.tsx
+│   │   │   ├── TransactionList.tsx
+│   │   │   ├── UploadForm.tsx
+│   │   │   ├── ManualEntryForm.tsx
+│   │   │   ├── EditTransactionModal.tsx
+│   │   │   ├── ConfirmModal.tsx
+│   │   │   ├── ProgressBar.tsx
+│   │   │   ├── RecurringPaymentCard.tsx
+│   │   │   ├── SettingsModal.tsx
+│   │   │   └── FormError.tsx
+│   │   ├── pages/                # Страницы приложения
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── HomePage.tsx      # Транзакции
+│   │   │   ├── UploadPage.tsx
+│   │   │   ├── ReportsPage.tsx
+│   │   │   ├── BudgetsPage.tsx
+│   │   │   ├── GoalsPage.tsx
+│   │   │   ├── AccountsPage.tsx
+│   │   │   └── RecurringPage.tsx
+│   │   ├── api/
+│   │   │   └── client.ts         # API клиент
+│   │   ├── lib/
+│   │   │   └── queryClient.ts    # Конфигурация React Query
+│   │   ├── utils/
+│   │   │   └── validation.ts     # Функции валидации
+│   │   ├── types/
+│   │   │   └── index.ts          # TypeScript типы
+│   │   ├── App.tsx               # Главный компонент
+│   │   └── main.tsx              # Точка входа
+│   └── public/                   # PWA иконки
+├── nginx/                        # Конфигурация reverse proxy
 └── docker-compose.yml
 ```
 
@@ -233,10 +283,41 @@ home-finance-plan/
 - Кафе и рестораны
 - Другое
 
-## Тестирование
+## Разработка
+
+### Миграции базы данных
+
+```bash
+# Применить миграции
+docker-compose exec backend alembic upgrade head
+
+# Создать новую миграцию
+docker-compose exec backend alembic revision --autogenerate -m "description"
+
+# Откатить миграцию
+docker-compose exec backend alembic downgrade -1
+```
+
+### Тестирование
 
 ```bash
 docker-compose exec backend pytest -v
+```
+
+### Логирование
+
+Приложение использует структурированное JSON-логирование. Пример вывода:
+
+```json
+{
+  "timestamp": "2024-02-04T12:00:00Z",
+  "level": "INFO",
+  "logger": "app.routers.upload",
+  "message": "Screenshot parsed successfully",
+  "request_id": "abc123",
+  "amount": 1500.0,
+  "category": "Еда"
+}
 ```
 
 ## Лицензия
