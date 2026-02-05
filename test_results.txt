@@ -1,0 +1,122 @@
+/usr/local/lib/python3.12/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0 -- /usr/local/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /app
+configfile: pytest.ini
+testpaths: tests
+plugins: asyncio-0.24.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, default_loop_scope=None
+collecting ... collected 81 items
+
+tests/test_accounts.py::test_create_account PASSED                       [  1%]
+tests/test_accounts.py::test_create_account_minimal PASSED               [  2%]
+tests/test_accounts.py::test_get_accounts_empty PASSED                   [  3%]
+tests/test_accounts.py::test_get_accounts PASSED                         [  4%]
+tests/test_accounts.py::test_get_accounts_include_inactive PASSED        [  6%]
+tests/test_accounts.py::test_get_account_by_id PASSED                    [  7%]
+tests/test_accounts.py::test_get_account_not_found PASSED                [  8%]
+tests/test_accounts.py::test_get_total_balance PASSED                    [  9%]
+tests/test_accounts.py::test_update_account PASSED                       [ 11%]
+tests/test_accounts.py::test_update_account_not_found PASSED             [ 12%]
+tests/test_accounts.py::test_delete_account_without_transactions PASSED  [ 13%]
+tests/test_accounts.py::test_delete_account_with_transactions PASSED     [ 14%]
+tests/test_accounts.py::test_delete_account_not_found PASSED             [ 16%]
+tests/test_accounts.py::test_adjust_balance PASSED                       [ 17%]
+tests/test_accounts.py::test_adjust_balance_not_found PASSED             [ 18%]
+tests/test_budgets.py::test_create_budget PASSED                         [ 19%]
+tests/test_budgets.py::test_create_budget_duplicate_category PASSED      [ 20%]
+tests/test_budgets.py::test_get_budgets_empty PASSED                     [ 22%]
+tests/test_budgets.py::test_get_budgets PASSED                           [ 23%]
+tests/test_budgets.py::test_get_budgets_status PASSED                    [ 24%]
+tests/test_budgets.py::test_update_budget PASSED                         [ 25%]
+tests/test_budgets.py::test_update_budget_not_found PASSED               [ 27%]
+tests/test_budgets.py::test_delete_budget PASSED                         [ 28%]
+tests/test_budgets.py::test_delete_budget_not_found PASSED               [ 29%]
+tests/test_dashboard.py::test_get_dashboard_summary_empty PASSED         [ 30%]
+tests/test_dashboard.py::test_get_dashboard_summary_with_transactions PASSED [ 32%]
+tests/test_dashboard.py::test_get_dashboard_summary_top_categories PASSED [ 33%]
+tests/test_dashboard.py::test_get_dashboard_widgets_empty PASSED         [ 34%]
+tests/test_dashboard.py::test_get_dashboard_widgets_with_budgets PASSED  [ 35%]
+tests/test_dashboard.py::test_get_dashboard_widgets_with_goals PASSED    [ 37%]
+tests/test_dashboard.py::test_get_dashboard_widgets_with_savings_status PASSED [ 38%]
+tests/test_dashboard.py::test_get_dashboard_widgets_goals_exclude_completed PASSED [ 39%]
+tests/test_recurring.py::test_create_recurring_payment PASSED            [ 40%]
+tests/test_recurring.py::test_create_recurring_weekly PASSED             [ 41%]
+tests/test_recurring.py::test_get_recurring_payments_empty PASSED        [ 43%]
+tests/test_recurring.py::test_get_recurring_payments PASSED              [ 44%]
+tests/test_recurring.py::test_get_recurring_payments_filter_active PASSED [ 45%]
+tests/test_recurring.py::test_get_recurring_payment_by_id PASSED         [ 46%]
+tests/test_recurring.py::test_get_recurring_payment_not_found PASSED     [ 48%]
+tests/test_recurring.py::test_update_recurring_payment PASSED            [ 49%]
+tests/test_recurring.py::test_update_recurring_payment_not_found PASSED  [ 50%]
+tests/test_recurring.py::test_delete_recurring_payment PASSED            [ 51%]
+tests/test_recurring.py::test_delete_recurring_payment_not_found PASSED  [ 53%]
+tests/test_recurring.py::test_execute_recurring_payment PASSED           [ 54%]
+tests/test_recurring.py::test_execute_recurring_payment_inactive PASSED  [ 55%]
+tests/test_recurring.py::test_execute_recurring_payment_not_found PASSED [ 56%]
+tests/test_recurring.py::test_create_recurring_from_transaction PASSED   [ 58%]
+tests/test_recurring.py::test_create_recurring_from_transaction_not_found PASSED [ 59%]
+tests/test_reports.py::test_monthly_report_empty PASSED                  [ 60%]
+tests/test_reports.py::test_monthly_report_with_transactions PASSED      [ 61%]
+tests/test_reports.py::test_monthly_report_filter_by_year PASSED         [ 62%]
+tests/test_savings.py::test_create_savings_goal PASSED                   [ 64%]
+tests/test_savings.py::test_create_savings_goal_minimal PASSED           [ 65%]
+tests/test_savings.py::test_get_savings_goals_empty PASSED               [ 66%]
+tests/test_savings.py::test_get_savings_goals PASSED                     [ 67%]
+tests/test_savings.py::test_get_savings_goals_include_completed PASSED   [ 69%]
+tests/test_savings.py::test_update_savings_goal PASSED                   [ 70%]
+tests/test_savings.py::test_update_savings_goal_not_found PASSED         [ 71%]
+tests/test_savings.py::test_add_to_savings_goal PASSED                   [ 72%]
+tests/test_savings.py::test_add_to_savings_goal_complete PASSED          [ 74%]
+tests/test_savings.py::test_delete_savings_goal PASSED                   [ 75%]
+tests/test_savings.py::test_delete_savings_goal_not_found PASSED         [ 76%]
+tests/test_savings.py::test_get_monthly_savings_status_no_settings PASSED [ 77%]
+tests/test_savings.py::test_get_monthly_savings_status_with_settings PASSED [ 79%]
+tests/test_settings.py::test_get_settings_default PASSED                 [ 80%]
+tests/test_settings.py::test_update_settings_create PASSED               [ 81%]
+tests/test_settings.py::test_update_settings_update PASSED               [ 82%]
+tests/test_settings.py::test_update_settings_partial PASSED              [ 83%]
+tests/test_settings.py::test_get_settings_after_update PASSED            [ 85%]
+tests/test_transactions.py::test_create_transaction PASSED               [ 86%]
+tests/test_transactions.py::test_get_transactions_empty PASSED           [ 87%]
+tests/test_transactions.py::test_get_transactions PASSED                 [ 88%]
+tests/test_transactions.py::test_get_transaction_by_id PASSED            [ 90%]
+tests/test_transactions.py::test_get_transaction_not_found PASSED        [ 91%]
+tests/test_transactions.py::test_update_transaction PASSED               [ 92%]
+tests/test_transactions.py::test_delete_transaction PASSED               [ 93%]
+tests/test_transactions.py::test_get_categories PASSED                   [ 95%]
+tests/test_transactions.py::test_filter_by_date PASSED                   [ 96%]
+tests/test_transactions.py::test_filter_by_category PASSED               [ 97%]
+tests/test_upload.py::test_upload_screenshot PASSED                      [ 98%]
+tests/test_upload.py::test_upload_non_image PASSED                       [100%]
+
+=============================== warnings summary ===============================
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+../usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+  /usr/local/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+app/logging_config.py:13: 1 warning
+tests/test_accounts.py: 92 warnings
+tests/test_budgets.py: 50 warnings
+tests/test_dashboard.py: 72 warnings
+tests/test_recurring.py: 86 warnings
+tests/test_reports.py: 37 warnings
+tests/test_savings.py: 74 warnings
+tests/test_settings.py: 48 warnings
+tests/test_transactions.py: 74 warnings
+tests/test_upload.py: 9 warnings
+  /app/app/logging_config.py:13: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat() + "Z",
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 81 passed, 550 warnings in 2.34s =======================

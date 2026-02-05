@@ -17,12 +17,12 @@ export default function DashboardPage() {
   const isLoading = summaryLoading || widgetsLoading;
 
   if (isLoading) {
-    return <div className="text-center py-8 text-gray-500">Загрузка...</div>;
+    return <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl sm:text-2xl font-bold">Обзор</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Обзор</h1>
 
       {/* Summary Cards */}
       {summary && <SummaryWidget summary={summary} />}
@@ -50,24 +50,24 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h2 className="font-medium mb-3">Быстрые действия</h2>
+      <div className="card p-4">
+        <h2 className="font-semibold text-slate-700 dark:text-gray-50 mb-3">Быстрые действия</h2>
         <div className="flex flex-wrap gap-2">
           <Link
             to="/upload"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="btn-primary"
           >
             Добавить транзакцию
           </Link>
           <Link
             to="/transactions"
-            className="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200"
+            className="btn-secondary"
           >
             Все транзакции
           </Link>
           <Link
             to="/reports"
-            className="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200"
+            className="btn-secondary"
           >
             Отчёты
           </Link>
@@ -93,30 +93,30 @@ function SummaryWidget({ summary }: SummaryWidgetProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-gray-500">Сегодня</div>
-        <div className="text-xl font-bold text-red-600">
+      <div className="card p-4">
+        <div className="text-sm text-gray-500 dark:text-gray-300">Сегодня</div>
+        <div className="text-xl font-bold text-red-600 dark:text-red-400">
           {summary.today.toLocaleString('ru-RU')} ₽
         </div>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-gray-500">За неделю</div>
-        <div className="text-xl font-bold text-red-600">
+      <div className="card p-4">
+        <div className="text-sm text-gray-500 dark:text-gray-300">За неделю</div>
+        <div className="text-xl font-bold text-red-600 dark:text-red-400">
           {summary.week.toLocaleString('ru-RU')} ₽
         </div>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-gray-500">За месяц</div>
-        <div className="text-xl font-bold text-red-600">
+      <div className="card p-4">
+        <div className="text-sm text-gray-500 dark:text-gray-300">За месяц</div>
+        <div className="text-xl font-bold text-red-600 dark:text-red-400">
           {summary.month.toLocaleString('ru-RU')} ₽
         </div>
-        <div className={`text-xs ${changeColor}`}>
+        <div className={`text-xs ${changeColor} dark:opacity-90`}>
           {changeSign}{summary.month_change_percent.toFixed(1)}% к прошлому месяцу
         </div>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-gray-500">Прошлый месяц</div>
-        <div className="text-xl font-bold text-gray-600">
+      <div className="card p-4">
+        <div className="text-sm text-gray-500 dark:text-gray-300">Прошлый месяц</div>
+        <div className="text-xl font-bold text-gray-600 dark:text-gray-300">
           {summary.last_month.toLocaleString('ru-RU')} ₽
         </div>
       </div>
@@ -137,10 +137,10 @@ interface BudgetsWidgetProps {
 
 function BudgetsWidget({ budgets }: BudgetsWidgetProps) {
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-medium">Бюджеты</h2>
-        <Link to="/budgets" className="text-sm text-blue-600 hover:text-blue-800">
+        <h2 className="font-semibold text-slate-700 dark:text-gray-50">Бюджеты</h2>
+        <Link to="/budgets" className="text-sm text-sage-600 dark:text-sage-400 hover:text-sage-700 dark:hover:text-sage-300 font-medium">
           Все бюджеты
         </Link>
       </div>
@@ -148,14 +148,14 @@ function BudgetsWidget({ budgets }: BudgetsWidgetProps) {
         {budgets.slice(0, 4).map((budget) => (
           <div key={budget.id}>
             <div className="flex justify-between text-sm mb-1">
-              <span>{budget.category}</span>
-              <span className={budget.is_over_threshold ? 'text-red-600' : ''}>
+              <span className="text-slate-700 dark:text-gray-50">{budget.category}</span>
+              <span className={`font-medium ${budget.is_over_threshold ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-gray-300'}`}>
                 {budget.spent.toLocaleString('ru-RU')} / {budget.monthly_limit.toLocaleString('ru-RU')} ₽
               </span>
             </div>
             <ProgressBar
               percentage={budget.percentage}
-              color={budget.percentage >= 100 ? 'red' : budget.is_over_threshold ? 'yellow' : 'green'}
+              color={budget.percentage >= 100 ? 'danger' : budget.is_over_threshold ? 'warning' : 'sage'}
               showLabel={false}
               size="sm"
             />
@@ -182,39 +182,39 @@ function SavingsWidget({ status }: SavingsWidgetProps) {
     : (status.income > 0 ? ((status.income - status.expenses) / status.income * 100) : 0);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-medium">Накопления в этом месяце</h2>
-        <Link to="/goals" className="text-sm text-blue-600 hover:text-blue-800">
+        <h2 className="font-semibold text-slate-700 dark:text-gray-50">Накопления в этом месяце</h2>
+        <Link to="/goals" className="text-sm text-sage-600 dark:text-sage-400 hover:text-sage-700 dark:hover:text-sage-300 font-medium">
           Цели
         </Link>
       </div>
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div>
-          <div className="text-xs text-gray-500">Доход</div>
-          <div className="font-medium text-green-600">
+          <div className="text-xs text-gray-500 dark:text-gray-300">Доход</div>
+          <div className="font-semibold text-green-600 dark:text-green-400">
             {status.income.toLocaleString('ru-RU')} ₽
           </div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Расходы</div>
-          <div className="font-medium text-red-600">
+          <div className="text-xs text-gray-500 dark:text-gray-300">Расходы</div>
+          <div className="font-semibold text-red-600 dark:text-red-400">
             {status.expenses.toLocaleString('ru-RU')} ₽
           </div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Накоплено</div>
-          <div className={`font-medium ${status.savings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="text-xs text-gray-500 dark:text-gray-300">Накоплено</div>
+          <div className={`font-semibold ${status.savings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {status.savings.toLocaleString('ru-RU')} ₽
           </div>
         </div>
       </div>
       <ProgressBar
         percentage={Math.max(0, percentage)}
-        color={status.is_on_track ? 'green' : 'red'}
+        color={status.is_on_track ? 'sage' : 'danger'}
         size="sm"
       />
-      <div className="text-xs text-gray-500 mt-1">
+      <div className="text-xs text-gray-500 dark:text-gray-300 mt-1 font-medium">
         {status.is_on_track ? 'Вы достигаете цели накоплений' : 'Нужно сократить расходы'}
       </div>
     </div>
@@ -233,10 +233,10 @@ interface GoalsWidgetProps {
 
 function GoalsWidget({ goals }: GoalsWidgetProps) {
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-medium">Цели накоплений</h2>
-        <Link to="/goals" className="text-sm text-blue-600 hover:text-blue-800">
+        <h2 className="font-semibold text-slate-700 dark:text-gray-50">Цели накоплений</h2>
+        <Link to="/goals" className="text-sm text-sage-600 dark:text-sage-400 hover:text-sage-700 dark:hover:text-sage-300 font-medium">
           Все цели
         </Link>
       </div>
@@ -246,14 +246,14 @@ function GoalsWidget({ goals }: GoalsWidgetProps) {
           return (
             <div key={goal.id}>
               <div className="flex justify-between text-sm mb-1">
-                <span>{goal.name}</span>
-                <span>
+                <span className="text-slate-700 dark:text-gray-50">{goal.name}</span>
+                <span className="font-medium text-slate-600 dark:text-gray-300">
                   {goal.current_amount.toLocaleString('ru-RU')} / {goal.target_amount.toLocaleString('ru-RU')} ₽
                 </span>
               </div>
               <ProgressBar
                 percentage={percentage}
-                color={goal.is_completed ? 'green' : 'blue'}
+                color={goal.is_completed ? 'success' : 'sage'}
                 showLabel={false}
                 size="sm"
               />
@@ -273,21 +273,21 @@ function TopCategoriesWidget({ categories }: TopCategoriesWidgetProps) {
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
-      <h2 className="font-medium mb-3">Топ категории за месяц</h2>
+    <div className="card p-4">
+      <h2 className="font-semibold text-slate-700 dark:text-gray-50 mb-3">Топ категории за месяц</h2>
       <div className="space-y-2">
         {categories.map((cat, index) => {
           const percentage = total > 0 ? (cat.amount / total * 100) : 0;
           return (
             <div key={index} className="flex items-center gap-2">
-              <div className="w-24 text-sm truncate">{cat.category}</div>
-              <div className="flex-1">
+              <div className="w-24 text-sm truncate text-slate-700 dark:text-gray-50">{cat.category}</div>
+              <div className="flex-1 bg-cream-300 dark:bg-dark-50/20 rounded-full overflow-hidden">
                 <div
-                  className="h-4 bg-blue-500 rounded"
+                  className="h-4 bg-sage-500 dark:bg-sage-600 rounded-full transition-all duration-300"
                   style={{ width: `${percentage}%` }}
                 />
               </div>
-              <div className="text-sm text-gray-600 w-20 text-right">
+              <div className="text-sm text-gray-600 dark:text-gray-300 w-20 text-right font-medium">
                 {cat.amount.toLocaleString('ru-RU')} ₽
               </div>
             </div>

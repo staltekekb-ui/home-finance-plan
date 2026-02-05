@@ -78,14 +78,14 @@ function ProgressBar({
 
   return (
     <div className="w-full">
-      <div className={`w-full bg-cream-300 rounded-full ${sizeClasses[size]} overflow-hidden`}>
+      <div className={`w-full bg-cream-300 dark:bg-dark-50/30 rounded-full ${sizeClasses[size]} overflow-hidden`}>
         <div
           className={`${colorClasses[color]} ${sizeClasses[size]} rounded-full transition-all duration-500 ease-out`}
           style={{ width: `${clampedPercentage}%` }}
         />
       </div>
       {showLabel && (
-        <div className="text-xs text-slate-600 mt-1 text-right font-medium">
+        <div className="text-xs text-slate-600 dark:text-gray-300 mt-1 text-right font-medium">
           {clampedPercentage.toFixed(0)}%
         </div>
       )}
