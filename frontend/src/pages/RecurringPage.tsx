@@ -69,10 +69,10 @@ export default function RecurringPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold">Повторяющиеся платежи</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Повторяющиеся платежи</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="btn-primary"
         >
           Добавить
         </button>
@@ -98,9 +98,9 @@ export default function RecurringPage() {
       )}
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>
       ) : activePayments.length === 0 && inactivePayments.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">
           Нет повторяющихся платежей
         </div>
       ) : (
@@ -121,7 +121,7 @@ export default function RecurringPage() {
 
           {inactivePayments.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-medium text-gray-500">Неактивные</h2>
+              <h2 className="text-lg font-medium text-gray-500 dark:text-gray-300">Неактивные</h2>
               {inactivePayments.map((payment) => (
                 <RecurringPaymentCard
                   key={payment.id}
@@ -212,7 +212,7 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
+    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
       <h2 className="text-lg font-medium">
         {initialData ? 'Редактировать платёж' : 'Новый повторяющийся платёж'}
       </h2>
@@ -305,7 +305,7 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
             />
-            <label htmlFor="isActive" className="text-sm text-gray-600">Активен</label>
+            <label htmlFor="isActive" className="text-sm text-gray-600 dark:text-gray-300">Активен</label>
           </div>
         )}
       </div>

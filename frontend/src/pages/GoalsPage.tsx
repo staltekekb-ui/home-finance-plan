@@ -79,17 +79,17 @@ export default function GoalsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold">Цели накоплений</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Цели накоплений</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowSettings(true)}
-            className="text-gray-600 hover:text-gray-800 px-3 py-2 border rounded"
+            className="btn-secondary"
           >
             Настройки
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="btn-primary"
           >
             Добавить цель
           </button>
@@ -125,15 +125,15 @@ export default function GoalsPage() {
           checked={showCompleted}
           onChange={(e) => setShowCompleted(e.target.checked)}
         />
-        <label htmlFor="showCompleted" className="text-sm text-gray-600">
+        <label htmlFor="showCompleted" className="text-sm text-gray-600 dark:text-gray-300">
           Показать выполненные
         </label>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>
       ) : goals.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">
           Нет целей накоплений. Создайте первую!
         </div>
       ) : (
@@ -215,29 +215,29 @@ function MonthlySavingsWidget({ status }: MonthlySavingsWidgetProps) {
   const percentage = status.income > 0 ? ((status.income - status.expenses) / status.income * 100) : 0;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+    <div className="card p-4 rounded-lg shadow-sm">
       <h2 className="font-medium mb-3">Накопления за этот месяц</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
         <div>
-          <div className="text-sm text-gray-500">Доход</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300">Доход</div>
           <div className="font-medium text-green-600">
             {status.income.toLocaleString('ru-RU')} ₽
           </div>
         </div>
         <div>
-          <div className="text-sm text-gray-500">Расходы</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300">Расходы</div>
           <div className="font-medium text-red-600">
             {status.expenses.toLocaleString('ru-RU')} ₽
           </div>
         </div>
         <div>
-          <div className="text-sm text-gray-500">Накоплено</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300">Накоплено</div>
           <div className={`font-medium ${status.savings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {status.savings.toLocaleString('ru-RU')} ₽
           </div>
         </div>
         <div>
-          <div className="text-sm text-gray-500">Цель</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300">Цель</div>
           <div className="font-medium">
             {status.savings_goal.toLocaleString('ru-RU')} ₽
           </div>
@@ -277,7 +277,7 @@ function GoalCard({ goal, onEdit, onDelete, onAddAmount }: GoalCardProps) {
         <div>
           <h3 className="font-medium">{goal.name}</h3>
           {targetDate && (
-            <div className="text-sm text-gray-500">Цель к: {targetDate}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-300">Цель к: {targetDate}</div>
           )}
         </div>
         {goal.is_completed && (
@@ -295,7 +295,7 @@ function GoalCard({ goal, onEdit, onDelete, onAddAmount }: GoalCardProps) {
         color={goal.is_completed ? 'green' : 'blue'}
       />
       <div className="flex justify-between items-center mt-3">
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 dark:text-gray-300">
           Осталось: {(goal.target_amount - goal.current_amount).toLocaleString('ru-RU')} ₽
         </div>
         <div className="flex gap-2">
@@ -375,7 +375,7 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
+    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
       <h2 className="text-lg font-medium">
         {initialData ? 'Редактировать цель' : 'Новая цель'}
       </h2>

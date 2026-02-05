@@ -31,10 +31,10 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold">Отчёты</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Отчёты</h1>
         <div className="flex gap-2">
           <select
-            className="border rounded px-3 py-2"
+            className="input"
             value={year}
             onChange={(e) => setYear(parseInt(e.target.value))}
           >
@@ -47,44 +47,44 @@ export default function ReportsPage() {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             {exporting ? 'Экспорт...' : 'Excel'}
           </button>
         </div>
       </div>
 
-      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+      <div className="card p-4 sm:p-6">
         <div className="text-center mb-4 sm:mb-6">
-          <div className="text-sm text-gray-500">Всего за {year} год</div>
-          <div className="text-2xl sm:text-3xl font-bold text-red-600">
+          <div className="text-sm text-gray-500 dark:text-gray-300">Всего за {year} год</div>
+          <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
             {yearTotal.toLocaleString('ru-RU')} ₽
           </div>
-          <div className="text-sm text-gray-500 mt-1">
+          <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
             {totalTransactions} транзакций
           </div>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>
       ) : (
         <>
           {/* Графики */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
-              <h2 className="text-lg font-medium mb-4">Траты по месяцам</h2>
+            <div className="card p-4 sm:p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-700 dark:text-gray-50 mb-4">Траты по месяцам</h2>
               <MonthlyBarChart reports={reports} />
             </div>
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
-              <h2 className="text-lg font-medium mb-4">По категориям</h2>
+            <div className="card p-4 sm:p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-700 dark:text-gray-50 mb-4">По категориям</h2>
               <CategoryBreakdownChart reports={reports} />
             </div>
           </div>
 
           {/* Детализация по месяцам */}
           <div className="space-y-4">
-            <h2 className="text-lg font-medium">Детализация</h2>
+            <h2 className="text-lg font-semibold text-slate-700 dark:text-gray-50">Детализация</h2>
             {reports
               .filter((r) => r.count > 0)
               .map((report) => (

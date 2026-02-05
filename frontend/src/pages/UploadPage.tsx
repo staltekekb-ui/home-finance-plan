@@ -124,7 +124,7 @@ export default function UploadPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl sm:text-2xl font-bold">Добавить транзакцию</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Добавить транзакцию</h1>
 
       <div className="flex border-b">
         <button
@@ -159,7 +159,7 @@ export default function UploadPage() {
           />
 
           {parsed && (
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
+            <div className="card p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
               <h2 className="text-lg font-medium">Проверьте данные</h2>
 
               <div className="space-y-4">
@@ -243,7 +243,7 @@ export default function UploadPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">{result.data.description}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-gray-300">
                         {result.data.date} • {result.data.category || 'Без категории'}
                       </div>
                     </div>

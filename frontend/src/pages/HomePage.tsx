@@ -68,47 +68,47 @@ export default function HomePage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <h1 className="text-xl sm:text-2xl font-bold">Транзакции</h1>
-        <div className="text-base sm:text-lg">
-          Всего: <span className="font-bold text-red-600">{total.toLocaleString('ru-RU')} ₽</span>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Транзакции</h1>
+        <div className="text-base sm:text-lg text-slate-700 dark:text-gray-50">
+          Всего: <span className="font-bold text-red-600 dark:text-red-400">{total.toLocaleString('ru-RU')} ₽</span>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
-        <h2 className="font-medium text-gray-700">Фильтры и поиск</h2>
+      <div className="card p-4 space-y-4">
+        <h2 className="font-semibold text-slate-700 dark:text-gray-50">Фильтры и поиск</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-sm text-gray-600 mb-1">Поиск</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Поиск</label>
             <input
               type="text"
               placeholder="Поиск по описанию..."
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={filters.search || ''}
               onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">С даты</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">С даты</label>
             <input
               type="date"
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={filters.date_from || ''}
               onChange={(e) => setFilters({ ...filters, date_from: e.target.value || undefined })}
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">По дату</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">По дату</label>
             <input
               type="date"
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={filters.date_to || ''}
               onChange={(e) => setFilters({ ...filters, date_to: e.target.value || undefined })}
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Категория</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Категория</label>
             <select
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={filters.category || ''}
               onChange={(e) => setFilters({ ...filters, category: e.target.value || undefined })}
             >
@@ -121,9 +121,9 @@ export default function HomePage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Сортировка</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сортировка</label>
             <select
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={filters.sort_by || 'date'}
               onChange={(e) => setFilters({ ...filters, sort_by: e.target.value as 'date' | 'amount' | 'description' })}
             >
@@ -133,9 +133,9 @@ export default function HomePage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Порядок</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Порядок</label>
             <select
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={filters.sort_order || 'desc'}
               onChange={(e) => setFilters({ ...filters, sort_order: e.target.value as 'asc' | 'desc' })}
             >
@@ -162,9 +162,9 @@ export default function HomePage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>
       ) : transactions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">
           Нет транзакций. Загрузите первый скриншот!
         </div>
       ) : (
