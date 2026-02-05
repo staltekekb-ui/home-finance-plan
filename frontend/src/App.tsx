@@ -31,23 +31,23 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <nav className="bg-white shadow-sm sticky top-0 z-40">
+      <nav className="bg-white shadow-card sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="text-lg sm:text-xl font-bold text-gray-900">
+            <Link to="/" className="text-lg sm:text-xl font-bold text-slate-700 hover:text-sage-600 transition-colors">
               Домашняя Бухгалтерия
             </Link>
 
             {/* Desktop menu */}
-            <div className="hidden lg:flex gap-1">
+            <div className="hidden lg:flex gap-2">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-3 py-2 rounded text-sm ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                     isActive(item.path)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-gradient-green text-white shadow-card'
+                      : 'text-slate-600 hover:text-sage-600 hover:bg-cream-200'
                   }`}
                 >
                   {item.label}
@@ -57,7 +57,7 @@ function App() {
 
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2 text-gray-600"
+              className="lg:hidden p-2 text-slate-600 hover:text-sage-600 transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,15 +72,15 @@ function App() {
 
           {/* Mobile menu */}
           {menuOpen && (
-            <div className="lg:hidden pb-4 space-y-1">
+            <div className="lg:hidden pb-4 space-y-2 animate-slide-up">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`block py-2 px-3 rounded ${
+                  className={`block py-2 px-4 rounded-xl font-medium transition-all duration-200 ${
                     isActive(item.path)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-gradient-green text-white shadow-card'
+                      : 'text-slate-600 hover:text-sage-600 hover:bg-cream-200'
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >

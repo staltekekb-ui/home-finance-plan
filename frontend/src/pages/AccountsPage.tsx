@@ -78,19 +78,19 @@ export default function AccountsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold">Счета</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700">Счета</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="btn-primary"
         >
           Добавить
         </button>
       </div>
 
       {totalBalance && (
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="text-sm text-gray-500">Общий баланс</div>
-          <div className="text-2xl font-bold">
+        <div className="card p-6">
+          <div className="text-sm text-slate-600 mb-2 font-medium">Общий баланс</div>
+          <div className="text-3xl font-bold text-slate-700">
             {totalBalance.total.toLocaleString('ru-RU')} ₽
           </div>
         </div>
@@ -176,27 +176,33 @@ function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
   const colorClass = accountColors.find(c => c.value === account.color)?.class || 'bg-gray-500';
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm overflow-hidden ${!account.is_active ? 'opacity-50' : ''}`}>
-      <div className={`h-2 ${colorClass}`} />
-      <div className="p-4">
-        <div className="flex items-start justify-between">
+    <div className={`card overflow-hidden ${!account.is_active ? 'opacity-50' : ''}`}>
+      <div className={`h-3 ${colorClass}`} />
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="font-medium">{account.name}</h3>
-            <div className="text-sm text-gray-500">
+            <h3 className="font-semibold text-slate-700 text-lg">{account.name}</h3>
+            <div className="text-sm text-slate-500 font-medium">
               {accountTypeLabels[account.account_type] || account.account_type}
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-lg font-bold ${account.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-xl font-bold ${account.balance >= 0 ? 'text-sage-600' : 'text-danger'}`}>
               {account.balance.toLocaleString('ru-RU')} {account.currency}
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-2 mt-3">
-          <button onClick={onEdit} className="text-gray-400 hover:text-blue-600 text-sm">
+        <div className="flex justify-end gap-3 pt-3 border-t border-cream-300">
+          <button
+            onClick={onEdit}
+            className="text-slate-500 hover:text-sage-600 text-sm font-medium transition-colors"
+          >
             Изменить
           </button>
-          <button onClick={onDelete} className="text-gray-400 hover:text-red-600 text-sm">
+          <button
+            onClick={onDelete}
+            className="text-slate-500 hover:text-danger text-sm font-medium transition-colors"
+          >
             Удалить
           </button>
         </div>
@@ -258,17 +264,17 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-lg font-medium">
+    <form onSubmit={handleSubmit} className="card p-6 space-y-6 animate-scale-in">
+      <h2 className="text-xl font-bold text-slate-700">
         {initialData ? 'Редактировать счёт' : 'Новый счёт'}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Название *</label>
+          <label className="block text-sm text-slate-600 mb-2 font-medium">Название *</label>
           <input
             type="text"
-            className={`w-full border rounded px-3 py-2 ${touched.name && errors.name ? 'border-red-500' : ''}`}
+            className={`input ${touched.name && errors.name ? 'input-error' : ''}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => handleBlur('name')}
@@ -277,9 +283,9 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           {touched.name && <FormError message={errors.name} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Тип счёта *</label>
+          <label className="block text-sm text-slate-600 mb-2 font-medium">Тип счёта *</label>
           <select
-            className="w-full border rounded px-3 py-2"
+            className="input"
             value={accountType}
             onChange={(e) => setAccountType(e.target.value as 'cash' | 'card' | 'savings')}
           >
@@ -289,20 +295,20 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Баланс</label>
+          <label className="block text-sm text-slate-600 mb-2 font-medium">Баланс</label>
           <input
             type="number"
             step="0.01"
-            className="w-full border rounded px-3 py-2"
+            className="input"
             value={balance}
             onChange={(e) => setBalance(e.target.value)}
             placeholder="0"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Валюта</label>
+          <label className="block text-sm text-slate-600 mb-2 font-medium">Валюта</label>
           <select
-            className="w-full border rounded px-3 py-2"
+            className="input"
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
           >
@@ -312,14 +318,14 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Цвет</label>
-          <div className="flex gap-2">
+          <label className="block text-sm text-slate-600 mb-2 font-medium">Цвет</label>
+          <div className="flex gap-3">
             {accountColors.map((c) => (
               <button
                 key={c.value}
                 type="button"
-                className={`w-8 h-8 rounded-full ${c.class} ${
-                  color === c.value ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                className={`w-10 h-10 rounded-full ${c.class} transition-all duration-200 ${
+                  color === c.value ? 'ring-4 ring-sage-500/30 scale-110' : 'hover:scale-105'
                 }`}
                 onClick={() => setColor(c.value)}
                 title={c.label}
@@ -328,30 +334,31 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           </div>
         </div>
         {initialData && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="isActive"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
+              className="w-5 h-5 text-sage-600 rounded focus:ring-sage-500"
             />
-            <label htmlFor="isActive" className="text-sm text-gray-600">Активен</label>
+            <label htmlFor="isActive" className="text-sm text-slate-600 font-medium">Активен</label>
           </div>
         )}
       </div>
 
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 pt-4 border-t border-cream-300">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+          className="btn-secondary"
         >
           Отмена
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Сохранение...' : 'Сохранить'}
         </button>

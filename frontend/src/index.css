@@ -2,6 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-50 text-gray-900;
+@layer base {
+  body {
+    @apply bg-cream-100 text-slate-700;
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Карточки с мягким свечением */
+  .card {
+    @apply bg-white rounded-2xl shadow-combined transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply shadow-card-hover translate-y-[-2px];
+  }
+
+  /* Кнопки */
+  .btn-primary {
+    @apply bg-gradient-green text-white font-semibold px-6 py-2.5 rounded-full
+           shadow-card hover:shadow-card-hover transform hover:scale-105
+           transition-all duration-200 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-700 font-medium px-6 py-2.5 rounded-full
+           border-2 border-sage-500 hover:bg-sage-50
+           transition-all duration-200 active:scale-95;
+  }
+
+  .btn-danger {
+    @apply bg-danger text-white font-semibold px-6 py-2.5 rounded-full
+           shadow-card hover:shadow-card-hover transform hover:scale-105
+           transition-all duration-200 active:scale-95;
+  }
+
+  /* Инпуты */
+  .input {
+    @apply w-full border-2 border-cream-300 rounded-xl px-4 py-2.5
+           focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20
+           transition-all duration-200 bg-white;
+  }
+
+  .input-error {
+    @apply border-danger focus:border-danger focus:ring-danger/20;
+  }
+
+  /* Модальные окна */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-slate-900/40 backdrop-blur-sm
+           flex items-center justify-center z-50 animate-fade-in;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-2xl shadow-card-hover max-w-lg w-full mx-4
+           animate-scale-in;
+  }
 }

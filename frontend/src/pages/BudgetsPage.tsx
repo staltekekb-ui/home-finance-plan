@@ -63,28 +63,29 @@ export default function BudgetsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold">Бюджеты</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700">Бюджеты</h1>
         <button
           onClick={() => setShowForm(true)}
           disabled={availableCategories.length === 0}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Добавить
         </button>
       </div>
 
       {budgets.length > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-600">Общий бюджет</span>
-            <span className="font-medium">
+        <div className="card p-6">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-slate-600 font-medium">Общий бюджет</span>
+            <span className="font-bold text-slate-700">
               {totalSpent.toLocaleString('ru-RU')} / {totalLimit.toLocaleString('ru-RU')} ₽
             </span>
           </div>
           <ProgressBar
             percentage={(totalSpent / totalLimit) * 100}
-            color={totalSpent > totalLimit ? 'red' : totalSpent > totalLimit * 0.8 ? 'yellow' : 'green'}
+            color={totalSpent > totalLimit ? 'danger' : totalSpent > totalLimit * 0.8 ? 'warning' : 'sage'}
             showLabel={false}
+            variant="semicircle"
           />
         </div>
       )}
@@ -148,34 +149,40 @@ interface BudgetCardProps {
 
 function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
   const getColor = () => {
-    if (budget.percentage >= 100) return 'red';
-    if (budget.is_over_threshold) return 'yellow';
-    return 'green';
+    if (budget.percentage >= 100) return 'danger';
+    if (budget.is_over_threshold) return 'warning';
+    return 'sage';
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{budget.category}</span>
+    <div className="card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-slate-700 text-lg">{budget.category}</span>
           {budget.is_over_threshold && (
-            <span className={`text-xs px-2 py-0.5 rounded ${
-              budget.percentage >= 100 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+            <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+              budget.percentage >= 100 ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'
             }`}>
               {budget.percentage >= 100 ? 'Превышен' : 'Внимание'}
             </span>
           )}
         </div>
-        <div className="flex gap-2">
-          <button onClick={onEdit} className="text-gray-400 hover:text-blue-600 text-sm">
+        <div className="flex gap-3">
+          <button
+            onClick={onEdit}
+            className="text-slate-500 hover:text-sage-600 text-sm font-medium transition-colors"
+          >
             Изменить
           </button>
-          <button onClick={onDelete} className="text-gray-400 hover:text-red-600 text-sm">
+          <button
+            onClick={onDelete}
+            className="text-slate-500 hover:text-danger text-sm font-medium transition-colors"
+          >
             Удалить
           </button>
         </div>
       </div>
-      <div className="flex justify-between text-sm text-gray-600 mb-2">
+      <div className="flex justify-between text-sm text-slate-600 mb-3 font-medium">
         <span>Потрачено: {budget.spent.toLocaleString('ru-RU')} ₽</span>
         <span>Лимит: {budget.monthly_limit.toLocaleString('ru-RU')} ₽</span>
       </div>
