@@ -146,13 +146,13 @@ export default function HomePage() {
         </div>
         <div className="flex gap-4">
           <button
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-sage-600 hover:text-sage-700 dark:text-sage-400 dark:hover:text-sage-300 font-medium"
             onClick={() => setFilters({})}
           >
             Сбросить фильтры
           </button>
           <button
-            className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+            className="text-sm bg-green-600 dark:bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleExport}
             disabled={exporting || transactions.length === 0}
           >

@@ -36,21 +36,21 @@ function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
           <div className="flex gap-3">
             <button
               onClick={onEdit}
-              className="text-slate-500 dark:text-gray-300 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium whitespace-nowrap transition-colors"
+              className="text-slate-600 dark:text-gray-200 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-semibold whitespace-nowrap transition-colors"
             >
               Изменить
             </button>
             {onRepeat && (
               <button
                 onClick={onRepeat}
-                className="text-slate-500 dark:text-gray-300 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium whitespace-nowrap transition-colors"
+                className="text-slate-600 dark:text-gray-200 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-semibold whitespace-nowrap transition-colors"
               >
                 Повторять
               </button>
             )}
             <button
               onClick={onDelete}
-              className="text-slate-500 dark:text-gray-300 hover:text-danger text-sm font-medium whitespace-nowrap transition-colors"
+              className="text-slate-600 dark:text-gray-200 hover:text-danger dark:hover:text-red-400 text-sm font-semibold whitespace-nowrap transition-colors"
             >
               Удалить
             </button>

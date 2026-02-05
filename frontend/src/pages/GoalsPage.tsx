@@ -153,14 +153,14 @@ export default function GoalsPage() {
       {addAmountTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => setAddAmountTarget(null)} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold mb-4">
+          <div className="relative bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-50 mb-4">
               Добавить к "{addAmountTarget.name}"
             </h3>
             <input
               type="number"
               step="100"
-              className="w-full border rounded px-3 py-2 mb-4"
+              className="input mb-4"
               placeholder="Сумма"
               value={addAmount}
               onChange={(e) => setAddAmount(e.target.value)}
@@ -169,7 +169,7 @@ export default function GoalsPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setAddAmountTarget(null)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+                className="btn-secondary"
               >
                 Отмена
               </button>
@@ -180,7 +180,7 @@ export default function GoalsPage() {
                   }
                 }}
                 disabled={addMutation.isPending}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                className="px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Добавить
               </button>
@@ -272,27 +272,27 @@ function GoalCard({ goal, onEdit, onDelete, onAddAmount }: GoalCardProps) {
     : null;
 
   return (
-    <div className={`bg-white p-4 rounded-lg shadow-sm ${goal.is_completed ? 'border-2 border-green-500' : ''}`}>
+    <div className={`card p-4 ${goal.is_completed ? 'border-2 border-green-500 dark:border-green-400' : ''}`}>
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className="font-medium">{goal.name}</h3>
+          <h3 className="font-medium text-slate-700 dark:text-gray-50">{goal.name}</h3>
           {targetDate && (
             <div className="text-sm text-gray-500 dark:text-gray-300">Цель к: {targetDate}</div>
           )}
         </div>
         {goal.is_completed && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+          <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">
             Достигнуто!
           </span>
         )}
       </div>
-      <div className="flex justify-between text-sm text-gray-600 mb-2">
+      <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2 font-medium">
         <span>{goal.current_amount.toLocaleString('ru-RU')} ₽</span>
         <span>{goal.target_amount.toLocaleString('ru-RU')} ₽</span>
       </div>
       <ProgressBar
         percentage={percentage}
-        color={goal.is_completed ? 'green' : 'blue'}
+        color={goal.is_completed ? 'green' : 'sage'}
       />
       <div className="flex justify-between items-center mt-3">
         <div className="text-sm text-gray-500 dark:text-gray-300">
@@ -302,15 +302,15 @@ function GoalCard({ goal, onEdit, onDelete, onAddAmount }: GoalCardProps) {
           {!goal.is_completed && (
             <button
               onClick={onAddAmount}
-              className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+              className="text-sm bg-green-600 dark:bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 dark:hover:bg-green-600"
             >
               Добавить
             </button>
           )}
-          <button onClick={onEdit} className="text-gray-400 hover:text-blue-600 text-sm">
+          <button onClick={onEdit} className="text-slate-500 dark:text-gray-300 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium">
             Изменить
           </button>
-          <button onClick={onDelete} className="text-gray-400 hover:text-red-600 text-sm">
+          <button onClick={onDelete} className="text-slate-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 text-sm font-medium">
             Удалить
           </button>
         </div>
@@ -375,17 +375,17 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-lg font-medium">
+    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 space-y-4">
+      <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">
         {initialData ? 'Редактировать цель' : 'Новая цель'}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
-          <label className="block text-sm text-gray-600 mb-1">Название *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Название *</label>
           <input
             type="text"
-            className={`w-full border rounded px-3 py-2 ${touched.name && errors.name ? 'border-red-500' : ''}`}
+            className={`input ${touched.name && errors.name ? 'input-error' : ''}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => handleBlur('name')}
@@ -394,12 +394,12 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           {touched.name && <FormError message={errors.name} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Целевая сумма *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Целевая сумма *</label>
           <input
             type="number"
             step="1000"
             min="1"
-            className={`w-full border rounded px-3 py-2 ${touched.targetAmount && errors.targetAmount ? 'border-red-500' : ''}`}
+            className={`input ${touched.targetAmount && errors.targetAmount ? 'input-error' : ''}`}
             value={targetAmount}
             onChange={(e) => setTargetAmount(e.target.value)}
             onBlur={() => handleBlur('targetAmount')}
@@ -408,12 +408,12 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           {touched.targetAmount && <FormError message={errors.targetAmount} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Уже накоплено</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Уже накоплено</label>
           <input
             type="number"
             step="100"
             min="0"
-            className={`w-full border rounded px-3 py-2 ${touched.currentAmount && errors.currentAmount ? 'border-red-500' : ''}`}
+            className={`input ${touched.currentAmount && errors.currentAmount ? 'input-error' : ''}`}
             value={currentAmount}
             onChange={(e) => setCurrentAmount(e.target.value)}
             onBlur={() => handleBlur('currentAmount')}
@@ -422,10 +422,10 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           {touched.currentAmount && <FormError message={errors.currentAmount} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Дата достижения</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Дата достижения</label>
           <input
             type="date"
-            className="w-full border rounded px-3 py-2"
+            className="input"
             value={targetDate}
             onChange={(e) => setTargetDate(e.target.value)}
           />
@@ -436,14 +436,14 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+          className="btn-secondary"
         >
           Отмена
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Сохранение...' : 'Сохранить'}
         </button>
