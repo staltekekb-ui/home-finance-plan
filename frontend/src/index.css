@@ -70,7 +70,7 @@
   }
 
   .dark .input {
-    @apply bg-dark-100 border-dark-50/30 text-gray-50
+    @apply bg-dark-100 border-dark-50/60 text-gray-50
            focus:border-sage-500 focus:ring-sage-500/30;
   }
 
