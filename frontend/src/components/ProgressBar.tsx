@@ -66,7 +66,7 @@ function ProgressBar({
           </svg>
           {showLabel && (
             <div className="absolute inset-0 flex items-end justify-center pb-1">
-              <span className="text-2xl font-bold text-slate-700 dark:text-gray-200">
+              <span className="text-2xl font-bold text-slate-700 dark:text-gray-50">
                 {clampedPercentage.toFixed(0)}%
               </span>
             </div>

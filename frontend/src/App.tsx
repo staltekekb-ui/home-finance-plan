@@ -35,7 +35,7 @@ function App() {
       <nav className="bg-white dark:bg-dark-100 shadow-card dark:shadow-none dark:border-b dark:border-dark-50/20 sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="text-lg sm:text-xl font-bold text-slate-700 dark:text-gray-200 hover:text-sage-600 dark:hover:text-sage-400 transition-colors">
+            <Link to="/" className="text-lg sm:text-xl font-bold text-slate-700 dark:text-gray-50 hover:text-sage-600 dark:hover:text-sage-400 transition-colors">
               Домашняя Бухгалтерия
             </Link>
 
