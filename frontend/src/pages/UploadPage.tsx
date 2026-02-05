@@ -126,12 +126,12 @@ export default function UploadPage() {
     <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Добавить транзакцию</h1>
 
-      <div className="flex border-b">
+      <div className="flex border-b border-gray-200 dark:border-dark-50/30">
         <button
           className={`px-4 py-2 -mb-px ${
             activeTab === 'screenshot'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'border-b-2 border-sage-600 text-sage-600 dark:border-sage-400 dark:text-sage-400'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100'
           }`}
           onClick={() => setActiveTab('screenshot')}
         >
@@ -140,8 +140,8 @@ export default function UploadPage() {
         <button
           className={`px-4 py-2 -mb-px ${
             activeTab === 'manual'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'border-b-2 border-sage-600 text-sage-600 dark:border-sage-400 dark:text-sage-400'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100'
           }`}
           onClick={() => setActiveTab('manual')}
         >
@@ -159,40 +159,40 @@ export default function UploadPage() {
           />
 
           {parsed && (
-            <div className="card p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
-              <h2 className="text-lg font-medium">Проверьте данные</h2>
+            <div className="card p-4 sm:p-6 space-y-4">
+              <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">Проверьте данные</h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Сумма</label>
+                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сумма</label>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full border rounded px-3 py-2"
+                    className="input"
                     value={form.amount || ''}
                     onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) })}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Описание</label>
+                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание</label>
                   <input
                     type="text"
-                    className="w-full border rounded px-3 py-2"
+                    className="input"
                     value={form.description || ''}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">
+                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
                     Категория
                     {parsed?.category && (
-                      <span className="ml-2 text-xs text-green-600">(определено автоматически)</span>
+                      <span className="ml-2 text-xs text-green-600 dark:text-green-400">(определено автоматически)</span>
                     )}
                   </label>
                   <select
-                    className="w-full border rounded px-3 py-2"
+                    className="input"
                     value={form.category || ''}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                   >
@@ -206,10 +206,10 @@ export default function UploadPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Дата</label>
+                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Дата</label>
                   <input
                     type="date"
-                    className="w-full border rounded px-3 py-2"
+                    className="input"
                     value={form.date || ''}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
                   />
@@ -218,13 +218,13 @@ export default function UploadPage() {
                 <button
                   onClick={handleSave}
                   disabled={saveMutation.isPending}
-                  className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                  className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saveMutation.isPending ? 'Сохранение...' : 'Сохранить транзакцию'}
                 </button>
 
                 {saveError && (
-                  <div className="text-red-600 text-sm mt-2">
+                  <div className="text-red-600 dark:text-red-400 text-sm mt-2">
                     Ошибка: {saveError}
                   </div>
                 )}
@@ -234,30 +234,30 @@ export default function UploadPage() {
 
           {batchResults.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-medium">Распознанные транзакции ({batchResults.filter(r => !r.saved).length} осталось)</h2>
+              <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">Распознанные транзакции ({batchResults.filter(r => !r.saved).length} осталось)</h2>
               {batchResults.map((result, index) => (
                 <div
                   key={index}
-                  className={`bg-white p-4 rounded-lg shadow-sm ${result.saved ? 'opacity-50' : ''}`}
+                  className={`card p-4 ${result.saved ? 'opacity-50' : ''}`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">{result.data.description}</div>
+                      <div className="font-medium text-slate-700 dark:text-gray-50">{result.data.description}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-300">
                         {result.data.date} • {result.data.category || 'Без категории'}
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-lg font-bold text-red-600">
+                      <span className="text-lg font-bold text-red-600 dark:text-red-400">
                         -{result.data.amount.toLocaleString('ru-RU')} ₽
                       </span>
                       {result.saved ? (
-                        <span className="text-green-600 text-sm">Сохранено</span>
+                        <span className="text-green-600 dark:text-green-400 text-sm">Сохранено</span>
                       ) : (
                         <button
                           onClick={() => handleSaveBatchItem(index, result.data)}
                           disabled={saveMutation.isPending}
-                          className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                          className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 disabled:opacity-50"
                         >
                           Сохранить
                         </button>

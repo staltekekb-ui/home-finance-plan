@@ -105,10 +105,10 @@ export default function UploadForm({ onUpload, onUploadMultiple, isLoading, erro
   };
 
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
+    <div className="card p-4 sm:p-6 space-y-4">
       <div
         className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${
-          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+          isDragging ? 'border-sage-500 bg-sage-50 dark:bg-sage-900/20' : 'border-gray-300 dark:border-dark-50/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -125,11 +125,11 @@ export default function UploadForm({ onUpload, onUploadMultiple, isLoading, erro
         <div className="space-y-2">
           <label
             htmlFor="file-input"
-            className="cursor-pointer text-blue-600 hover:text-blue-800 block"
+            className="cursor-pointer text-sage-600 hover:text-sage-700 dark:text-sage-400 dark:hover:text-sage-300 block"
           >
             Выберите скриншоты из банковского приложения
           </label>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-300">
             Или перетащите файлы сюда, или вставьте из буфера (Ctrl+V)
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function UploadForm({ onUpload, onUploadMultiple, isLoading, erro
                 <img
                   src={f.preview}
                   alt="Preview"
-                  className="w-full h-24 object-cover rounded border"
+                  className="w-full h-24 object-cover rounded border border-gray-300 dark:border-dark-50/30"
                 />
                 <button
                   onClick={() => removeFile(f.id)}
@@ -156,13 +156,13 @@ export default function UploadForm({ onUpload, onUploadMultiple, isLoading, erro
             ))}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-300">
               {files.length} {files.length === 1 ? 'файл' : files.length < 5 ? 'файла' : 'файлов'}
             </span>
             <button
               onClick={handleUpload}
               disabled={isLoading || files.length === 0}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Распознавание...' : 'Распознать'}
             </button>

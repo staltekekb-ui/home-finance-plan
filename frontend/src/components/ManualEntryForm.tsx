@@ -72,16 +72,16 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-lg font-medium">Добавить вручную</h2>
+    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-slate-700 dark:text-gray-50">Добавить вручную</h2>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Сумма *</label>
+        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сумма *</label>
         <input
           type="number"
           step="0.01"
           min="0.01"
-          className={`w-full border rounded px-3 py-2 ${touched.amount && errors.amount ? 'border-red-500' : ''}`}
+          className={`input ${touched.amount && errors.amount ? 'input-error' : ''}`}
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -91,10 +91,10 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
       </div>
 
       <div className="relative">
-        <label className="block text-sm text-gray-600 mb-1">Описание *</label>
+        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание *</label>
         <input
           type="text"
-          className={`w-full border rounded px-3 py-2 ${touched.description && errors.description ? 'border-red-500' : ''}`}
+          className={`input ${touched.description && errors.description ? 'input-error' : ''}`}
           placeholder="Например: Магнит, продукты"
           value={description}
           onChange={(e) => {
@@ -109,11 +109,11 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
         />
         {touched.description && <FormError message={errors.description} />}
         {showSuggestions && suggestions.length > 0 && (
-          <ul className="absolute z-10 w-full bg-white border rounded-b shadow-lg mt-0">
+          <ul className="absolute z-10 w-full bg-white dark:bg-dark-100 border dark:border-dark-50/30 rounded-b shadow-lg mt-0">
             {suggestions.map((s, i) => (
               <li
                 key={i}
-                className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-dark-50 cursor-pointer text-sm text-slate-700 dark:text-gray-50"
                 onMouseDown={() => selectSuggestion(s)}
               >
                 {s}
@@ -124,9 +124,9 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Категория</label>
+        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Категория</label>
         <select
-          className="w-full border rounded px-3 py-2"
+          className="input"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
@@ -140,10 +140,10 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Дата *</label>
+        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Дата *</label>
         <input
           type="date"
-          className={`w-full border rounded px-3 py-2 ${touched.date && errors.date ? 'border-red-500' : ''}`}
+          className={`input ${touched.date && errors.date ? 'input-error' : ''}`}
           value={date}
           onChange={(e) => setDate(e.target.value)}
           onBlur={() => handleBlur('date')}
@@ -154,7 +154,7 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
       <button
         type="submit"
         disabled={isSaving}
-        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+        className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSaving ? 'Сохранение...' : 'Сохранить транзакцию'}
       </button>
