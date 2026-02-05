@@ -19,11 +19,11 @@ function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
     <div className="card p-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-slate-700 truncate text-lg">{transaction.description}</div>
-          <div className="text-sm text-slate-500 flex flex-wrap gap-2 mt-1 font-medium">
+          <div className="font-semibold text-slate-700 dark:text-gray-200 truncate text-lg">{transaction.description}</div>
+          <div className="text-sm text-slate-500 dark:text-gray-400 flex flex-wrap gap-2 mt-1 font-medium">
             <span>{formattedDate}</span>
             {transaction.category && (
-              <span className="bg-sage-500/10 text-sage-700 px-3 py-0.5 rounded-full text-xs font-semibold">
+              <span className="bg-sage-500/10 dark:bg-sage-500/20 text-sage-700 dark:text-sage-400 px-3 py-0.5 rounded-full text-xs font-semibold">
                 {transaction.category}
               </span>
             )}
@@ -36,21 +36,21 @@ function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
           <div className="flex gap-3">
             <button
               onClick={onEdit}
-              className="text-slate-500 hover:text-sage-600 text-sm font-medium whitespace-nowrap transition-colors"
+              className="text-slate-500 dark:text-gray-400 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium whitespace-nowrap transition-colors"
             >
               Изменить
             </button>
             {onRepeat && (
               <button
                 onClick={onRepeat}
-                className="text-slate-500 hover:text-sage-600 text-sm font-medium whitespace-nowrap transition-colors"
+                className="text-slate-500 dark:text-gray-400 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium whitespace-nowrap transition-colors"
               >
                 Повторять
               </button>
             )}
             <button
               onClick={onDelete}
-              className="text-slate-500 hover:text-danger text-sm font-medium whitespace-nowrap transition-colors"
+              className="text-slate-500 dark:text-gray-400 hover:text-danger text-sm font-medium whitespace-nowrap transition-colors"
             >
               Удалить
             </button>

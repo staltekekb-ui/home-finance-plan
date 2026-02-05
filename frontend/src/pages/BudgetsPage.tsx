@@ -63,7 +63,7 @@ export default function BudgetsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-700">Бюджеты</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-200">Бюджеты</h1>
         <button
           onClick={() => setShowForm(true)}
           disabled={availableCategories.length === 0}
@@ -76,8 +76,8 @@ export default function BudgetsPage() {
       {budgets.length > 0 && (
         <div className="card p-6">
           <div className="flex justify-between items-center mb-3">
-            <span className="text-slate-600 font-medium">Общий бюджет</span>
-            <span className="font-bold text-slate-700">
+            <span className="text-slate-600 dark:text-gray-400 font-medium">Общий бюджет</span>
+            <span className="font-bold text-slate-700 dark:text-gray-200">
               {totalSpent.toLocaleString('ru-RU')} / {totalLimit.toLocaleString('ru-RU')} ₽
             </span>
           </div>
@@ -158,7 +158,7 @@ function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
     <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-slate-700 text-lg">{budget.category}</span>
+          <span className="font-semibold text-slate-700 dark:text-gray-200 text-lg">{budget.category}</span>
           {budget.is_over_threshold && (
             <span className={`text-xs px-3 py-1 rounded-full font-medium ${
               budget.percentage >= 100 ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'
@@ -170,19 +170,19 @@ function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         <div className="flex gap-3">
           <button
             onClick={onEdit}
-            className="text-slate-500 hover:text-sage-600 text-sm font-medium transition-colors"
+            className="text-slate-500 dark:text-gray-400 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium transition-colors"
           >
             Изменить
           </button>
           <button
             onClick={onDelete}
-            className="text-slate-500 hover:text-danger text-sm font-medium transition-colors"
+            className="text-slate-500 dark:text-gray-400 hover:text-danger text-sm font-medium transition-colors"
           >
             Удалить
           </button>
         </div>
       </div>
-      <div className="flex justify-between text-sm text-slate-600 mb-3 font-medium">
+      <div className="flex justify-between text-sm text-slate-600 dark:text-gray-400 mb-3 font-medium">
         <span>Потрачено: {budget.spent.toLocaleString('ru-RU')} ₽</span>
         <span>Лимит: {budget.monthly_limit.toLocaleString('ru-RU')} ₽</span>
       </div>

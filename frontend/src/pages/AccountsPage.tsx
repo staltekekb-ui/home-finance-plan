@@ -78,7 +78,7 @@ export default function AccountsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-700">Счета</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-200">Счета</h1>
         <button
           onClick={() => setShowForm(true)}
           className="btn-primary"
@@ -89,8 +89,8 @@ export default function AccountsPage() {
 
       {totalBalance && (
         <div className="card p-6">
-          <div className="text-sm text-slate-600 mb-2 font-medium">Общий баланс</div>
-          <div className="text-3xl font-bold text-slate-700">
+          <div className="text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">Общий баланс</div>
+          <div className="text-3xl font-bold text-slate-700 dark:text-gray-200">
             {totalBalance.total.toLocaleString('ru-RU')} ₽
           </div>
         </div>
@@ -181,27 +181,27 @@ function AccountCard({ account, onEdit, onDelete }: AccountCardProps) {
       <div className="p-5">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-slate-700 text-lg">{account.name}</h3>
-            <div className="text-sm text-slate-500 font-medium">
+            <h3 className="font-semibold text-slate-700 dark:text-gray-200 text-lg">{account.name}</h3>
+            <div className="text-sm text-slate-500 dark:text-gray-400 font-medium">
               {accountTypeLabels[account.account_type] || account.account_type}
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-xl font-bold ${account.balance >= 0 ? 'text-sage-600' : 'text-danger'}`}>
+            <div className={`text-xl font-bold ${account.balance >= 0 ? 'text-sage-600 dark:text-sage-400' : 'text-danger'}`}>
               {account.balance.toLocaleString('ru-RU')} {account.currency}
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-3 pt-3 border-t border-cream-300">
+        <div className="flex justify-end gap-3 pt-3 border-t border-cream-300 dark:border-dark-50/20">
           <button
             onClick={onEdit}
-            className="text-slate-500 hover:text-sage-600 text-sm font-medium transition-colors"
+            className="text-slate-500 dark:text-gray-400 hover:text-sage-600 dark:hover:text-sage-400 text-sm font-medium transition-colors"
           >
             Изменить
           </button>
           <button
             onClick={onDelete}
-            className="text-slate-500 hover:text-danger text-sm font-medium transition-colors"
+            className="text-slate-500 dark:text-gray-400 hover:text-danger text-sm font-medium transition-colors"
           >
             Удалить
           </button>
@@ -265,13 +265,13 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="card p-6 space-y-6 animate-scale-in">
-      <h2 className="text-xl font-bold text-slate-700">
+      <h2 className="text-xl font-bold text-slate-700 dark:text-gray-200">
         {initialData ? 'Редактировать счёт' : 'Новый счёт'}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm text-slate-600 mb-2 font-medium">Название *</label>
+          <label className="block text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">Название *</label>
           <input
             type="text"
             className={`input ${touched.name && errors.name ? 'input-error' : ''}`}
@@ -283,7 +283,7 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           {touched.name && <FormError message={errors.name} />}
         </div>
         <div>
-          <label className="block text-sm text-slate-600 mb-2 font-medium">Тип счёта *</label>
+          <label className="block text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">Тип счёта *</label>
           <select
             className="input"
             value={accountType}
@@ -295,7 +295,7 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           </select>
         </div>
         <div>
-          <label className="block text-sm text-slate-600 mb-2 font-medium">Баланс</label>
+          <label className="block text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">Баланс</label>
           <input
             type="number"
             step="0.01"
@@ -306,7 +306,7 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           />
         </div>
         <div>
-          <label className="block text-sm text-slate-600 mb-2 font-medium">Валюта</label>
+          <label className="block text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">Валюта</label>
           <select
             className="input"
             value={currency}
@@ -318,7 +318,7 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           </select>
         </div>
         <div>
-          <label className="block text-sm text-slate-600 mb-2 font-medium">Цвет</label>
+          <label className="block text-sm text-slate-600 dark:text-gray-400 mb-2 font-medium">Цвет</label>
           <div className="flex gap-3">
             {accountColors.map((c) => (
               <button
