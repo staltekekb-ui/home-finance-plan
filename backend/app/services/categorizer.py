@@ -54,6 +54,12 @@ EXPENSE_KEYWORDS = {
         "снятие наличных", "выдача наличных", "cash withdrawal", "atm",
         "банкомат", "получение наличных", "наличные"
     ],
+    "Перевод другим лицам": [
+        "перевод", "transfer to", "на карту", "по номеру телефона",
+        "по номеру", "отправить", "отправка", "переслал", "перевел",
+        "на счет", "на счёт", "sbp", "сбп", "система быстрых платежей",
+        "p2p", "transfer", "send money"
+    ],
 }
 
 # Категории доходов
@@ -63,8 +69,9 @@ INCOME_KEYWORDS = {
         "начисление з/п", "начисление зарплаты", "выплата зп"
     ],
     "Перевод от других лиц": [
-        "перевод", "от", "transfer from", "пополнение", "зачисление от",
-        "поступление от", "перевод по номеру", "с карты"
+        "перевод от", "зачисление от", "поступление от", "пополнение от",
+        "transfer from", "получен перевод", "поступил перевод", "с карты на",
+        "перевод на ваш счет", "перевод на вашу карту"
     ],
     "Внесение наличных": [
         "внесение наличных", "пополнение наличными", "cash deposit",
@@ -89,17 +96,28 @@ def categorize_transaction(description: str) -> tuple[str | None, str]:
     """
     description_lower = description.lower()
 
-    # Check income keywords first
-    for category, keywords in INCOME_KEYWORDS.items():
-        for keyword in keywords:
-            if keyword in description_lower:
-                return (category, "income")
+    # Special handling for transfers: check direction indicators
+    # If contains "от" (from), it's income; otherwise check expense keywords first
+    has_from_indicator = any(word in description_lower for word in ["от ", " от", "зачисление", "поступление", "получен"])
 
-    # Check expense keywords
+    if has_from_indicator:
+        # Check income keywords first for transfers FROM others
+        for category, keywords in INCOME_KEYWORDS.items():
+            for keyword in keywords:
+                if keyword in description_lower:
+                    return (category, "income")
+
+    # Check expense keywords (including transfers TO others)
     for category, keywords in EXPENSE_KEYWORDS.items():
         for keyword in keywords:
             if keyword in description_lower:
                 return (category, "expense")
+
+    # Check remaining income keywords
+    for category, keywords in INCOME_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in description_lower:
+                return (category, "income")
 
     # Default to expense with no category
     return (None, "expense")

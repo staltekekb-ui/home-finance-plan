@@ -20,6 +20,7 @@ class CategoryEnum(str, Enum):
     education = "Образование"
     cafe = "Кафе и рестораны"
     cash_withdrawal = "Снятие наличных"
+    transfer_to_others = "Перевод другим лицам"
     other = "Другое"
     # Доходы
     salary = "Зарплата"
