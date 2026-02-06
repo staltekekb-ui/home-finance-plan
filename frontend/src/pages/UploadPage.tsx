@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts } from '../api/client';
+import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts, getSavingsGoals, addToSavingsGoal } from '../api/client';
 import type { ParsedTransaction, TransactionCreate } from '../types';
 import UploadForm, { type UploadFormRef } from '../components/UploadForm';
 import ManualEntryForm from '../components/ManualEntryForm';
 import EditParsedTransactionModal from '../components/EditParsedTransactionModal';
+import SavingsDistributionModal from '../components/SavingsDistributionModal';
 
 type TabType = 'screenshot' | 'manual';
 
@@ -15,6 +16,8 @@ export default function UploadPage() {
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showDistribution, setShowDistribution] = useState(false);
+  const [availableForSavings, setAvailableForSavings] = useState(0);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -29,6 +32,11 @@ export default function UploadPage() {
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => getTransactions(),
+  });
+
+  const { data: savingsGoals = [] } = useQuery({
+    queryKey: ['savings-goals'],
+    queryFn: () => getSavingsGoals(false),
   });
 
   // Auto-select first active account
@@ -130,10 +138,28 @@ export default function UploadPage() {
     queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
     queryClient.invalidateQueries({ queryKey: ['reports'] });
     queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+
+    // Calculate balance from all saved transactions
+    const income = batchResults
+      .filter(r => r.data.transaction_type === 'income')
+      .reduce((sum, r) => sum + r.data.amount, 0);
+
+    const expenses = batchResults
+      .filter(r => r.data.transaction_type === 'expense')
+      .reduce((sum, r) => sum + r.data.amount, 0);
+
+    const balance = income - expenses;
+
     setBatchResults([]);
     uploadFormRef.current?.clearFiles();
     setSuccessMessage(`Сохранено ${unsavedTransactions.length} транзакций`);
     setTimeout(() => setSuccessMessage(null), 3000);
+
+    // Show savings distribution modal if there's positive balance
+    if (balance > 0 && savingsGoals.length > 0) {
+      setAvailableForSavings(balance);
+      setShowDistribution(true);
+    }
   };
 
   const handleUpdateTransaction = (index: number, updatedData: ParsedTransaction) => {
@@ -141,6 +167,22 @@ export default function UploadPage() {
       i === index ? { ...r, data: updatedData } : r
     ));
     setEditingIndex(null);
+  };
+
+  const handleDistributeSavings = async (distributions: { goalId: number; amount: number }[]) => {
+    try {
+      for (const dist of distributions) {
+        await addToSavingsGoal(dist.goalId, dist.amount);
+      }
+      queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+      setShowDistribution(false);
+      setSuccessMessage(`Распределено ${distributions.reduce((sum, d) => sum + d.amount, 0).toLocaleString('ru-RU')} ₽ по целям`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Failed to distribute savings:', error);
+      alert('Ошибка при распределении средств');
+    }
   };
 
   return (
@@ -283,6 +325,14 @@ export default function UploadPage() {
         categories={categories}
         onSave={(data) => editingIndex !== null && handleUpdateTransaction(editingIndex, data)}
         onCancel={() => setEditingIndex(null)}
+      />
+
+      <SavingsDistributionModal
+        isOpen={showDistribution}
+        availableAmount={availableForSavings}
+        goals={savingsGoals}
+        onDistribute={handleDistributeSavings}
+        onSkip={() => setShowDistribution(false)}
       />
     </div>
   );
