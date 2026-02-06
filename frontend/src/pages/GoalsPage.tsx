@@ -397,8 +397,8 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Целевая сумма *</label>
           <input
             type="number"
-            step="1000"
-            min="1"
+            step="0.01"
+            min="0.01"
             className={`input ${touched.targetAmount && errors.targetAmount ? 'input-error' : ''}`}
             value={targetAmount}
             onChange={(e) => setTargetAmount(e.target.value)}
