@@ -301,7 +301,6 @@ function AccountForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) 
           <label className="block text-sm text-slate-600 dark:text-gray-300 mb-2 font-medium">Баланс</label>
           <input
             type="number"
-            step="0.01"
             className="input"
             value={balance}
             onChange={(e) => setBalance(e.target.value)}

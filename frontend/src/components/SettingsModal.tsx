@@ -58,7 +58,6 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             </label>
             <input
               type="number"
-              step="1000"
               className="input"
               value={monthlyIncome}
               onChange={(e) => setMonthlyIncome(e.target.value)}
@@ -74,7 +73,6 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             </label>
             <input
               type="number"
-              step="1000"
               className="input"
               value={monthlySavingsGoal}
               onChange={(e) => setMonthlySavingsGoal(e.target.value)}

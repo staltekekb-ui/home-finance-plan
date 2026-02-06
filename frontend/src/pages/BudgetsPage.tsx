@@ -274,8 +274,6 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Месячный лимит *</label>
           <input
             type="number"
-            step="100"
-            min="1"
             className={`input ${touched.monthlyLimit && errors.monthlyLimit ? 'input-error' : ''}`}
             value={monthlyLimit}
             onChange={(e) => setMonthlyLimit(e.target.value)}
@@ -288,8 +286,6 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Порог предупреждения (%)</label>
           <input
             type="number"
-            min="1"
-            max="100"
             className={`input ${touched.alertThreshold && errors.alertThreshold ? 'input-error' : ''}`}
             value={alertThreshold}
             onChange={(e) => setAlertThreshold(e.target.value)}

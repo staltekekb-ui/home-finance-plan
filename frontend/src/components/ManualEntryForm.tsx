@@ -82,8 +82,6 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
         <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сумма *</label>
         <input
           type="number"
-          step="0.01"
-          min="0.01"
           className={`input ${touched.amount && errors.amount ? 'input-error' : ''}`}
           placeholder="0.00"
           value={amount}

@@ -163,7 +163,6 @@ export default function GoalsPage() {
             </h3>
             <input
               type="number"
-              step="0.01"
               className="input mb-4"
               placeholder="Сумма"
               value={addAmount}
@@ -401,8 +400,6 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Целевая сумма *</label>
           <input
             type="number"
-            step="0.01"
-            min="0.01"
             className={`input ${touched.targetAmount && errors.targetAmount ? 'input-error' : ''}`}
             value={targetAmount}
             onChange={(e) => setTargetAmount(e.target.value)}
@@ -415,8 +412,6 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Уже накоплено</label>
           <input
             type="number"
-            step="0.01"
-            min="0"
             className={`input ${touched.currentAmount && errors.currentAmount ? 'input-error' : ''}`}
             value={currentAmount}
             onChange={(e) => setCurrentAmount(e.target.value)}

@@ -217,19 +217,17 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-lg font-medium">
+    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 space-y-4">
+      <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">
         {initialData ? 'Редактировать платёж' : 'Новый повторяющийся платёж'}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Сумма *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сумма *</label>
           <input
             type="number"
-            step="0.01"
-            min="0.01"
-            className={`w-full border rounded px-3 py-2 ${touched.amount && errors.amount ? 'border-red-500' : ''}`}
+            className={`input ${touched.amount && errors.amount ? 'input-error' : ''}`}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             onBlur={() => handleBlur('amount')}
@@ -237,10 +235,10 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
           {touched.amount && <FormError message={errors.amount} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Описание *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание *</label>
           <input
             type="text"
-            className={`w-full border rounded px-3 py-2 ${touched.description && errors.description ? 'border-red-500' : ''}`}
+            className={`input ${touched.description && errors.description ? 'input-error' : ''}`}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => handleBlur('description')}
@@ -248,9 +246,9 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
           {touched.description && <FormError message={errors.description} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Категория</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Категория</label>
           <select
-            className="w-full border rounded px-3 py-2"
+            className="input"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -263,9 +261,9 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Периодичность *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Периодичность *</label>
           <select
-            className="w-full border rounded px-3 py-2"
+            className="input"
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as any)}
           >
@@ -277,12 +275,10 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
         </div>
         {frequency === 'monthly' && (
           <div>
-            <label className="block text-sm text-gray-600 mb-1">День месяца</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">День месяца</label>
             <input
               type="number"
-              min="1"
-              max="31"
-              className={`w-full border rounded px-3 py-2 ${touched.dayOfMonth && errors.dayOfMonth ? 'border-red-500' : ''}`}
+              className={`input ${touched.dayOfMonth && errors.dayOfMonth ? 'input-error' : ''}`}
               value={dayOfMonth}
               onChange={(e) => setDayOfMonth(e.target.value)}
               onBlur={() => handleBlur('dayOfMonth')}
@@ -292,10 +288,10 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
           </div>
         )}
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Следующая дата *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Следующая дата *</label>
           <input
             type="date"
-            className={`w-full border rounded px-3 py-2 ${touched.nextDate && errors.nextDate ? 'border-red-500' : ''}`}
+            className={`input ${touched.nextDate && errors.nextDate ? 'input-error' : ''}`}
             value={nextDate}
             onChange={(e) => setNextDate(e.target.value)}
             onBlur={() => handleBlur('nextDate')}
@@ -319,14 +315,14 @@ function RecurringPaymentForm({ categories, initialData, onSubmit, onCancel, isL
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+          className="btn-secondary"
         >
           Отмена
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Сохранение...' : 'Сохранить'}
         </button>

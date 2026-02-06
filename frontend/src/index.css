@@ -6,10 +6,16 @@
   body {
     @apply bg-cream-100 text-slate-700 transition-colors duration-300;
     font-family: 'Nunito', system-ui, sans-serif;
+    font-size: 16px;
   }
 
   .dark body {
     @apply bg-dark-400 text-gray-50;
+  }
+
+  /* Slightly larger base font for better readability */
+  html {
+    font-size: 17px;
   }
 }
 
