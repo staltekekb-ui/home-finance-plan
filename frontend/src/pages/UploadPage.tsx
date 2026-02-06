@@ -91,6 +91,10 @@ export default function UploadPage() {
     }, selectedAccountId).then(() => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
       setBatchResults(prev => prev.map((r, i) => i === index ? { ...r, saved: true } : r));
     });
   };
@@ -99,6 +103,10 @@ export default function UploadPage() {
     createTransaction(data, selectedAccountId).then(() => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
     });
   };
 
@@ -118,6 +126,10 @@ export default function UploadPage() {
 
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
     queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+    queryClient.invalidateQueries({ queryKey: ['reports'] });
+    queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
     setBatchResults([]);
     uploadFormRef.current?.clearFiles();
     setSuccessMessage(`Сохранено ${unsavedTransactions.length} транзакций`);

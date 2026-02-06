@@ -36,6 +36,7 @@ export default function BudgetsPage() {
     mutationFn: createBudget,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setShowForm(false);
     },
   });
@@ -45,6 +46,7 @@ export default function BudgetsPage() {
       updateBudget(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setEditingBudget(null);
     },
   });
@@ -53,6 +55,7 @@ export default function BudgetsPage() {
     mutationFn: deleteBudget,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setDeleteTarget(null);
     },
   });

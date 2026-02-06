@@ -45,6 +45,7 @@ export default function GoalsPage() {
     mutationFn: createSavingsGoal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setShowForm(false);
     },
   });
@@ -54,6 +55,7 @@ export default function GoalsPage() {
       updateSavingsGoal(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setEditingGoal(null);
     },
   });
@@ -63,6 +65,7 @@ export default function GoalsPage() {
       addToSavingsGoal(id, amount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setAddAmountTarget(null);
       setAddAmount('');
     },
@@ -72,6 +75,7 @@ export default function GoalsPage() {
     mutationFn: deleteSavingsGoal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setDeleteTarget(null);
     },
   });

@@ -60,6 +60,11 @@ export default function RecurringPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
     },
   });
 

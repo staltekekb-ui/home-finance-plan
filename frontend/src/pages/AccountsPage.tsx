@@ -49,6 +49,7 @@ export default function AccountsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['total-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setShowForm(false);
     },
   });
@@ -59,6 +60,7 @@ export default function AccountsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['total-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setEditingAccount(null);
     },
   });
@@ -68,6 +70,7 @@ export default function AccountsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['total-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setDeleteTarget(null);
     },
   });
