@@ -94,8 +94,9 @@ export async function getTransactions(filters?: TransactionFilters): Promise<Tra
   return request<Transaction[]>(`/transactions${query}`);
 }
 
-export async function createTransaction(data: TransactionCreate): Promise<Transaction> {
-  return request<Transaction>('/transactions/', {
+export async function createTransaction(data: TransactionCreate, accountId?: number): Promise<Transaction> {
+  const url = accountId ? `/transactions/?account_id=${accountId}` : '/transactions/';
+  return request<Transaction>(url, {
     method: 'POST',
     body: JSON.stringify(data),
   });

@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions } from '../api/client';
+import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts } from '../api/client';
 import type { ParsedTransaction, TransactionCreate } from '../types';
 import UploadForm, { type UploadFormRef } from '../components/UploadForm';
 import ManualEntryForm from '../components/ManualEntryForm';
@@ -10,7 +9,6 @@ import EditParsedTransactionModal from '../components/EditParsedTransactionModal
 type TabType = 'screenshot' | 'manual';
 
 export default function UploadPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const uploadFormRef = useRef<UploadFormRef>(null);
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
@@ -23,9 +21,24 @@ export default function UploadPage() {
     queryFn: getCategories,
   });
 
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: () => getAccounts(true),
+  });
+
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => getTransactions(),
+  });
+
+  // Auto-select first active account
+  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(undefined);
+
+  // Set default account when accounts load
+  useState(() => {
+    if (accounts.length > 0 && selectedAccountId === undefined) {
+      setSelectedAccountId(accounts[0].id);
+    }
   });
 
   const recentDescriptions = [...new Set(transactions.map(t => t.description))].slice(0, 50);
@@ -56,15 +69,6 @@ export default function UploadPage() {
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: createTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      if (batchResults.length === 0) {
-        navigate('/transactions');
-      }
-    },
-  });
 
   const handleUpload = (file: File) => {
     setBatchResults([]);
@@ -77,25 +81,24 @@ export default function UploadPage() {
   };
 
   const handleSaveBatchItem = (index: number, data: ParsedTransaction) => {
-    saveMutation.mutate({
+    createTransaction({
       amount: data.amount,
       description: data.description,
       category: data.category || undefined,
       transaction_type: data.transaction_type,
       date: data.date,
       raw_text: data.raw_text,
-    }, {
-      onSuccess: () => {
-        setBatchResults(prev => prev.map((r, i) => i === index ? { ...r, saved: true } : r));
-      }
+    }, selectedAccountId).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      setBatchResults(prev => prev.map((r, i) => i === index ? { ...r, saved: true } : r));
     });
   };
 
   const handleManualSave = (data: TransactionCreate) => {
-    saveMutation.mutate(data, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      }
+    createTransaction(data, selectedAccountId).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
     });
   };
 
@@ -110,10 +113,11 @@ export default function UploadPage() {
         transaction_type: result.data.transaction_type,
         date: result.data.date,
         raw_text: result.data.raw_text,
-      });
+      }, selectedAccountId);
     }
 
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
     setBatchResults([]);
     uploadFormRef.current?.clearFiles();
     setSuccessMessage(`Сохранено ${unsavedTransactions.length} транзакций`);
@@ -162,6 +166,26 @@ export default function UploadPage() {
 
       {activeTab === 'screenshot' && (
         <>
+          {accounts.length > 0 && (
+            <div className="card p-4">
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
+                Счёт для зачисления/списания
+              </label>
+              <select
+                className="input"
+                value={selectedAccountId || ''}
+                onChange={(e) => setSelectedAccountId(e.target.value ? parseInt(e.target.value) : undefined)}
+              >
+                <option value="">Без привязки к счёту</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name} ({account.balance.toLocaleString('ru-RU')} {account.currency})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <UploadForm
             ref={uploadFormRef}
             onUpload={handleUpload}
@@ -179,8 +203,7 @@ export default function UploadPage() {
                 {batchResults.some(r => !r.saved) && (
                   <button
                     onClick={handleSaveAll}
-                    disabled={saveMutation.isPending}
-                    className="btn-primary disabled:opacity-50"
+                    className="btn-primary"
                   >
                     Сохранить все
                   </button>
@@ -218,8 +241,7 @@ export default function UploadPage() {
                           </button>
                           <button
                             onClick={() => handleSaveBatchItem(index, result.data)}
-                            disabled={saveMutation.isPending}
-                            className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 disabled:opacity-50"
+                            className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
                           >
                             Сохранить
                           </button>
@@ -239,7 +261,7 @@ export default function UploadPage() {
           categories={categories}
           recentDescriptions={recentDescriptions}
           onSave={handleManualSave}
-          isSaving={saveMutation.isPending}
+          isSaving={false}
         />
       )}
 
