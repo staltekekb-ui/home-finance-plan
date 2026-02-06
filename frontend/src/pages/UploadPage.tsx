@@ -5,6 +5,7 @@ import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategori
 import type { ParsedTransaction, TransactionCreate } from '../types';
 import UploadForm from '../components/UploadForm';
 import ManualEntryForm from '../components/ManualEntryForm';
+import EditParsedTransactionModal from '../components/EditParsedTransactionModal';
 
 type TabType = 'screenshot' | 'manual';
 
@@ -13,6 +14,8 @@ export default function UploadPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -95,9 +98,42 @@ export default function UploadPage() {
     });
   };
 
+  const handleSaveAll = async () => {
+    const unsavedTransactions = batchResults.filter(r => !r.saved);
+
+    for (const result of unsavedTransactions) {
+      await createTransaction({
+        amount: result.data.amount,
+        description: result.data.description,
+        category: result.data.category || undefined,
+        transaction_type: result.data.transaction_type,
+        date: result.data.date,
+        raw_text: result.data.raw_text,
+      });
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    setBatchResults([]);
+    setSuccessMessage(`Сохранено ${unsavedTransactions.length} транзакций`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const handleUpdateTransaction = (index: number, updatedData: ParsedTransaction) => {
+    setBatchResults(prev => prev.map((r, i) =>
+      i === index ? { ...r, data: updatedData } : r
+    ));
+    setEditingIndex(null);
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Добавить транзакцию</h1>
+
+      {successMessage && (
+        <div className="bg-green-100 dark:bg-green-900/30 border border-green-500 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-3 rounded">
+          {successMessage}
+        </div>
+      )}
 
       <div className="flex border-b border-gray-200 dark:border-dark-50/30">
         <button
@@ -133,7 +169,20 @@ export default function UploadPage() {
 
           {batchResults.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">Распознанные транзакции ({batchResults.filter(r => !r.saved).length} осталось)</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">
+                  Распознанные транзакции ({batchResults.filter(r => !r.saved).length} осталось)
+                </h2>
+                {batchResults.some(r => !r.saved) && (
+                  <button
+                    onClick={handleSaveAll}
+                    disabled={saveMutation.isPending}
+                    className="btn-primary disabled:opacity-50"
+                  >
+                    Сохранить все
+                  </button>
+                )}
+              </div>
               {batchResults.map((result, index) => (
                 <div
                   key={index}
@@ -146,7 +195,7 @@ export default function UploadPage() {
                         {result.data.date} • {result.data.category || 'Без категории'}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <span className={`text-lg font-bold ${
                         result.data.transaction_type === 'income'
                           ? 'text-green-600 dark:text-green-400'
@@ -157,13 +206,21 @@ export default function UploadPage() {
                       {result.saved ? (
                         <span className="text-green-600 dark:text-green-400 text-sm">Сохранено</span>
                       ) : (
-                        <button
-                          onClick={() => handleSaveBatchItem(index, result.data)}
-                          disabled={saveMutation.isPending}
-                          className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 disabled:opacity-50"
-                        >
-                          Сохранить
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditingIndex(index)}
+                            className="text-sm text-slate-600 dark:text-gray-300 hover:text-sage-600 dark:hover:text-sage-400 px-3 py-1 border border-slate-300 dark:border-dark-50/30 rounded"
+                          >
+                            Редактировать
+                          </button>
+                          <button
+                            onClick={() => handleSaveBatchItem(index, result.data)}
+                            disabled={saveMutation.isPending}
+                            className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 disabled:opacity-50"
+                          >
+                            Сохранить
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -182,6 +239,14 @@ export default function UploadPage() {
           isSaving={saveMutation.isPending}
         />
       )}
+
+      <EditParsedTransactionModal
+        isOpen={editingIndex !== null}
+        transaction={editingIndex !== null ? batchResults[editingIndex]?.data : null}
+        categories={categories}
+        onSave={(data) => editingIndex !== null && handleUpdateTransaction(editingIndex, data)}
+        onCancel={() => setEditingIndex(null)}
+      />
     </div>
   );
 }
