@@ -77,6 +77,7 @@ export default function UploadPage() {
       amount: data.amount,
       description: data.description,
       category: data.category || undefined,
+      transaction_type: data.transaction_type,
       date: data.date,
       raw_text: data.raw_text,
     }, {
