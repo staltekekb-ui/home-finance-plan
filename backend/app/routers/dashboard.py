@@ -22,27 +22,31 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         last_month_start = month_start.replace(month=month_start.month - 1)
     last_month_end = month_start - timedelta(days=1)
 
-    # Today's spending
+    # Today's spending (only expenses)
     today_total = db.query(func.sum(Transaction.amount)).filter(
-        Transaction.date == today
+        Transaction.date == today,
+        Transaction.transaction_type == 'expense'
     ).scalar() or 0
 
-    # Week's spending
+    # Week's spending (only expenses)
     week_total = db.query(func.sum(Transaction.amount)).filter(
         Transaction.date >= week_ago,
         Transaction.date <= today,
+        Transaction.transaction_type == 'expense'
     ).scalar() or 0
 
-    # Month's spending
+    # Month's spending (only expenses)
     month_total = db.query(func.sum(Transaction.amount)).filter(
         Transaction.date >= month_start,
         Transaction.date <= today,
+        Transaction.transaction_type == 'expense'
     ).scalar() or 0
 
-    # Last month's spending
+    # Last month's spending (only expenses)
     last_month_total = db.query(func.sum(Transaction.amount)).filter(
         Transaction.date >= last_month_start,
         Transaction.date <= last_month_end,
+        Transaction.transaction_type == 'expense'
     ).scalar() or 0
 
     # Month change percentage
@@ -55,7 +59,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     else:
         change_percent = 0
 
-    # Top categories for this month
+    # Top categories for this month (only expenses)
     top_categories_query = db.query(
         Transaction.category,
         func.sum(Transaction.amount).label('total')
@@ -63,6 +67,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         Transaction.date >= month_start,
         Transaction.date <= today,
         Transaction.category.isnot(None),
+        Transaction.transaction_type == 'expense'
     ).group_by(Transaction.category).order_by(func.sum(Transaction.amount).desc()).limit(5).all()
 
     top_categories = [
@@ -93,6 +98,7 @@ def get_dashboard_widgets(db: Session = Depends(get_db)):
     for budget in budgets:
         spent = db.query(func.sum(Transaction.amount)).filter(
             Transaction.category == budget.category,
+            Transaction.transaction_type == 'expense',
             extract('year', Transaction.date) == year,
             extract('month', Transaction.date) == month,
         ).scalar() or 0
@@ -120,17 +126,28 @@ def get_dashboard_widgets(db: Session = Depends(get_db)):
     settings = db.query(UserSettings).first()
     savings_status = None
 
-    if settings and settings.monthly_income:
-        expenses = db.query(func.sum(Transaction.amount)).filter(
+    if settings:
+        # Calculate actual income from transactions
+        income_from_transactions = db.query(func.sum(Transaction.amount)).filter(
+            Transaction.transaction_type == 'income',
             extract('year', Transaction.date) == year,
             extract('month', Transaction.date) == month,
         ).scalar() or 0
 
-        savings = settings.monthly_income - expenses
+        # Use actual income or settings income
+        actual_income = income_from_transactions or (settings.monthly_income or 0)
+
+        expenses = db.query(func.sum(Transaction.amount)).filter(
+            Transaction.transaction_type == 'expense',
+            extract('year', Transaction.date) == year,
+            extract('month', Transaction.date) == month,
+        ).scalar() or 0
+
+        savings = actual_income - expenses
         savings_goal = settings.monthly_savings_goal or 0
 
         savings_status = MonthlySavingsStatus(
-            income=settings.monthly_income,
+            income=actual_income,
             expenses=expenses,
             savings=savings,
             savings_goal=savings_goal,

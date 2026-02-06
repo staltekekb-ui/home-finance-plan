@@ -74,9 +74,12 @@ class ParsedTransaction(BaseModel):
 
 class MonthlyReport(BaseModel):
     month: str
-    total: float
+    total: float  # Total expenses
     count: int
     by_category: dict[str, float]
+    income: float = 0  # Total income
+    income_count: int = 0
+    income_by_category: dict[str, float] = {}
 
 
 # Recurring Payments

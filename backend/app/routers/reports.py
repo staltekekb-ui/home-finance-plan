@@ -25,14 +25,27 @@ def get_monthly_report(
         .all()
     )
 
-    monthly_data: dict[int, dict] = defaultdict(lambda: {"total": 0, "count": 0, "by_category": defaultdict(float)})
+    monthly_data: dict[int, dict] = defaultdict(lambda: {
+        "total": 0,
+        "count": 0,
+        "by_category": defaultdict(float),
+        "income": 0,
+        "income_count": 0,
+        "income_by_category": defaultdict(float)
+    })
 
     for t in transactions:
         month = t.date.month
-        monthly_data[month]["total"] += t.amount
-        monthly_data[month]["count"] += 1
         category = t.category or "Без категории"
-        monthly_data[month]["by_category"][category] += t.amount
+
+        if t.transaction_type == 'income':
+            monthly_data[month]["income"] += t.amount
+            monthly_data[month]["income_count"] += 1
+            monthly_data[month]["income_by_category"][category] += t.amount
+        else:  # expense
+            monthly_data[month]["total"] += t.amount
+            monthly_data[month]["count"] += 1
+            monthly_data[month]["by_category"][category] += t.amount
 
     month_names = [
         "", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
@@ -47,6 +60,9 @@ def get_monthly_report(
             total=round(data["total"], 2),
             count=data["count"],
             by_category=dict(data["by_category"]),
+            income=round(data["income"], 2),
+            income_count=data["income_count"],
+            income_by_category=dict(data["income_by_category"]),
         ))
 
     return result

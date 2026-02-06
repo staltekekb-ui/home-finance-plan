@@ -36,7 +36,11 @@ def create_transaction(
         # Update account balance
         account = db.query(Account).filter(Account.id == account_id).first()
         if account:
-            account.balance -= transaction.amount
+            # Income increases balance, expense decreases it
+            if transaction.transaction_type == 'income':
+                account.balance += transaction.amount
+            else:
+                account.balance -= transaction.amount
 
     db_transaction = Transaction(**data)
     db.add(db_transaction)
