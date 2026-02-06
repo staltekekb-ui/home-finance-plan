@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts, getSavingsGoals, addToSavingsGoal } from '../api/client';
+import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts, getSavingsGoals, addToSavingsGoal, subtractFromSavingsGoal } from '../api/client';
 import type { ParsedTransaction, TransactionCreate } from '../types';
 import UploadForm, { type UploadFormRef } from '../components/UploadForm';
 import ManualEntryForm from '../components/ManualEntryForm';
 import EditParsedTransactionModal from '../components/EditParsedTransactionModal';
 import SavingsDistributionModal from '../components/SavingsDistributionModal';
+import ExpenseDeductionModal from '../components/ExpenseDeductionModal';
 
 type TabType = 'screenshot' | 'manual';
 
@@ -17,7 +18,10 @@ export default function UploadPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showDistribution, setShowDistribution] = useState(false);
+  const [showExpenseDeduction, setShowExpenseDeduction] = useState(false);
   const [availableForSavings, setAvailableForSavings] = useState(0);
+  const [totalExpensesForDeduction, setTotalExpensesForDeduction] = useState(0);
+  const [pendingBalance, setPendingBalance] = useState(0);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -155,8 +159,16 @@ export default function UploadPage() {
     setSuccessMessage(`Сохранено ${unsavedTransactions.length} транзакций`);
     setTimeout(() => setSuccessMessage(null), 3000);
 
-    // Show savings distribution modal if there's positive balance
-    if (balance > 0 && savingsGoals.length > 0) {
+    // Store balance for later use after expense deduction
+    setPendingBalance(balance);
+
+    // Show expense deduction modal first if there are expenses and goals with funds
+    const goalsWithFunds = savingsGoals.filter(g => !g.is_completed && g.current_amount > 0);
+    if (expenses > 0 && goalsWithFunds.length > 0) {
+      setTotalExpensesForDeduction(expenses);
+      setShowExpenseDeduction(true);
+    } else if (balance > 0 && savingsGoals.length > 0) {
+      // If no expenses to deduct, show distribution modal directly
       setAvailableForSavings(balance);
       setShowDistribution(true);
     }
@@ -182,6 +194,39 @@ export default function UploadPage() {
     } catch (error) {
       console.error('Failed to distribute savings:', error);
       alert('Ошибка при распределении средств');
+    }
+  };
+
+  const handleExpenseDeduction = async (deductions: { goalId: number; amount: number }[]) => {
+    try {
+      for (const deduction of deductions) {
+        await subtractFromSavingsGoal(deduction.goalId, deduction.amount);
+      }
+      queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+      setShowExpenseDeduction(false);
+
+      const totalDeducted = deductions.reduce((sum, d) => sum + d.amount, 0);
+      setSuccessMessage(`Списано ${totalDeducted.toLocaleString('ru-RU')} ₽ с целей`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+
+      // After expense deduction, show distribution modal if there's positive balance
+      if (pendingBalance > 0 && savingsGoals.length > 0) {
+        setAvailableForSavings(pendingBalance);
+        setShowDistribution(true);
+      }
+    } catch (error: any) {
+      console.error('Failed to deduct expenses:', error);
+      alert(`Ошибка при списании: ${error.message || 'Неизвестная ошибка'}`);
+    }
+  };
+
+  const handleSkipExpenseDeduction = () => {
+    setShowExpenseDeduction(false);
+    // After skipping expense deduction, show distribution modal if there's positive balance
+    if (pendingBalance > 0 && savingsGoals.length > 0) {
+      setAvailableForSavings(pendingBalance);
+      setShowDistribution(true);
     }
   };
 
@@ -325,6 +370,14 @@ export default function UploadPage() {
         categories={categories}
         onSave={(data) => editingIndex !== null && handleUpdateTransaction(editingIndex, data)}
         onCancel={() => setEditingIndex(null)}
+      />
+
+      <ExpenseDeductionModal
+        isOpen={showExpenseDeduction}
+        totalExpenses={totalExpensesForDeduction}
+        goals={savingsGoals}
+        onDeduct={handleExpenseDeduction}
+        onSkip={handleSkipExpenseDeduction}
       />
 
       <SavingsDistributionModal

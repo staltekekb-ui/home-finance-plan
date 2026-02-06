@@ -249,6 +249,12 @@ export async function addToSavingsGoal(id: number, amount: number): Promise<Savi
   });
 }
 
+export async function subtractFromSavingsGoal(id: number, amount: number): Promise<SavingsGoal> {
+  return request<SavingsGoal>(`/savings/goals/${id}/subtract?amount=${amount}`, {
+    method: 'POST',
+  });
+}
+
 export async function deleteSavingsGoal(id: number): Promise<void> {
   await request(`/savings/goals/${id}`, { method: 'DELETE' });
 }

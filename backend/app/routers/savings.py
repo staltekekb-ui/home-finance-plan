@@ -92,6 +92,34 @@ def add_to_goal(
     return db_goal
 
 
+@router.post("/goals/{goal_id}/subtract", response_model=SavingsGoalResponse)
+def subtract_from_goal(
+    goal_id: int,
+    amount: float = Query(..., gt=0),
+    db: Session = Depends(get_db),
+):
+    """Subtract amount from a savings goal (for spending from savings)"""
+    db_goal = db.query(SavingsGoal).filter(SavingsGoal.id == goal_id).first()
+    if not db_goal:
+        raise HTTPException(status_code=404, detail="Цель не найдена")
+
+    if db_goal.current_amount < amount:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Недостаточно средств в цели. Доступно: {db_goal.current_amount}"
+        )
+
+    db_goal.current_amount -= amount
+
+    # Mark as incomplete if it was completed before
+    if db_goal.is_completed and db_goal.current_amount < db_goal.target_amount:
+        db_goal.is_completed = False
+
+    db.commit()
+    db.refresh(db_goal)
+    return db_goal
+
+
 @router.delete("/goals/{goal_id}")
 def delete_goal(goal_id: int, db: Session = Depends(get_db)):
     db_goal = db.query(SavingsGoal).filter(SavingsGoal.id == goal_id).first()
