@@ -13,7 +13,6 @@ export default function UploadPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -57,25 +56,19 @@ export default function UploadPage() {
     mutationFn: createTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      setSaveError(null);
       if (batchResults.length === 0) {
         navigate('/transactions');
       }
-    },
-    onError: (error: Error) => {
-      setSaveError(error.message);
     },
   });
 
   const handleUpload = (file: File) => {
     setBatchResults([]);
-    setSaveError(null);
     uploadMutation.mutate(file);
   };
 
   const handleBatchUpload = (files: File[]) => {
     setBatchResults([]);
-    setSaveError(null);
     batchUploadMutation.mutate(files);
   };
 
@@ -94,11 +87,9 @@ export default function UploadPage() {
   };
 
   const handleManualSave = (data: TransactionCreate) => {
-    setSaveError(null);
     saveMutation.mutate(data, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        setSaveError(null);
       }
     });
   };

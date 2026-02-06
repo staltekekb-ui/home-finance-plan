@@ -245,7 +245,7 @@ function MonthlySavingsWidget({ status }: MonthlySavingsWidgetProps) {
       </div>
       <ProgressBar
         percentage={status.savings_goal > 0 ? (status.savings / status.savings_goal * 100) : percentage}
-        color={status.is_on_track ? 'green' : 'red'}
+        color={status.is_on_track ? 'success' : 'danger'}
       />
       <div className="text-sm text-gray-500 mt-1">
         {status.is_on_track ? 'Вы на правильном пути!' : 'Нужно сократить расходы'}
@@ -292,7 +292,7 @@ function GoalCard({ goal, onEdit, onDelete, onAddAmount }: GoalCardProps) {
       </div>
       <ProgressBar
         percentage={percentage}
-        color={goal.is_completed ? 'green' : 'sage'}
+        color={goal.is_completed ? 'success' : 'sage'}
       />
       <div className="flex justify-between items-center mt-3">
         <div className="text-sm text-gray-500 dark:text-gray-300">

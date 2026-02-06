@@ -11,10 +11,15 @@ def test_upload_screenshot(client):
     )
     assert response.status_code == 200
     data = response.json()
-    assert "amount" in data
-    assert "description" in data
-    assert "date" in data
-    assert "raw_text" in data
+    # API now returns array of transactions
+    assert isinstance(data, list)
+    assert len(data) > 0
+    # Check first transaction
+    transaction = data[0]
+    assert "amount" in transaction
+    assert "description" in transaction
+    assert "date" in transaction
+    assert "raw_text" in transaction
 
 
 def test_upload_non_image(client):
