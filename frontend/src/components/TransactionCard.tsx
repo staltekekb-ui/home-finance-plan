@@ -30,8 +30,12 @@ function TransactionCard({ transaction, onDelete, onEdit, onRepeat }: Props) {
           </div>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-4">
-          <div className="text-xl font-bold text-danger whitespace-nowrap">
-            -{transaction.amount.toLocaleString('ru-RU')} ₽
+          <div className={`text-xl font-bold whitespace-nowrap ${
+            transaction.transaction_type === 'income'
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-danger dark:text-red-400'
+          }`}>
+            {transaction.transaction_type === 'income' ? '+' : '-'}{transaction.amount.toLocaleString('ru-RU')} ₽
           </div>
           <div className="flex gap-3">
             <button

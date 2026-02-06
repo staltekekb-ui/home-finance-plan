@@ -24,6 +24,7 @@ class CategoryEnum(str, Enum):
     # Доходы
     salary = "Зарплата"
     transfer = "Перевод от других лиц"
+    cash_deposit = "Внесение наличных"
     freelance = "Фриланс"
     investment = "Инвестиции"
     other_income = "Другой доход"

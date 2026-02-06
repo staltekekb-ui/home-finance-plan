@@ -3,6 +3,7 @@ export interface Transaction {
   amount: number;
   description: string;
   category: string | null;
+  transaction_type: 'income' | 'expense';
   date: string;
   image_path: string | null;
   raw_text: string | null;
@@ -15,6 +16,7 @@ export interface TransactionCreate {
   amount: number;
   description: string;
   category?: string;
+  transaction_type?: 'income' | 'expense';
   date: string;
   image_path?: string;
   raw_text?: string;
@@ -24,6 +26,7 @@ export interface ParsedTransaction {
   amount: number;
   description: string;
   category: string | null;
+  transaction_type: 'income' | 'expense';
   date: string;
   raw_text: string;
 }
@@ -54,6 +57,7 @@ export interface TransactionUpdate {
   amount?: number;
   description?: string;
   category?: string;
+  transaction_type?: 'income' | 'expense';
   date?: string;
 }
 

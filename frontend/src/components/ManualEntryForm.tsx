@@ -14,6 +14,7 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -55,12 +56,14 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
       amount: parseFloat(amount),
       description,
       category: category || undefined,
+      transaction_type: transactionType,
       date,
     });
 
     setAmount('');
     setDescription('');
     setCategory('');
+    setTransactionType('expense');
     setDate(new Date().toISOString().split('T')[0]);
     setErrors({});
     setTouched({});
@@ -121,6 +124,18 @@ export default function ManualEntryForm({ categories, recentDescriptions, onSave
             ))}
           </ul>
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Тип операции *</label>
+        <select
+          className="input"
+          value={transactionType}
+          onChange={(e) => setTransactionType(e.target.value as 'income' | 'expense')}
+        >
+          <option value="expense">Расход</option>
+          <option value="income">Доход</option>
+        </select>
       </div>
 
       <div>

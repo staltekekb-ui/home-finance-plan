@@ -7,7 +7,7 @@ interface Props {
   isOpen: boolean;
   transaction: Transaction | null;
   categories: Category[];
-  onSave: (id: number, data: { amount?: number; description?: string; category?: string; date?: string }) => void;
+  onSave: (id: number, data: { amount?: number; description?: string; category?: string; transaction_type?: 'income' | 'expense'; date?: string }) => void;
   onCancel: () => void;
 }
 
@@ -21,6 +21,7 @@ export default function EditTransactionModal({
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
   const [date, setDate] = useState('');
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -31,6 +32,7 @@ export default function EditTransactionModal({
       setAmount(transaction.amount.toString());
       setDescription(transaction.description);
       setCategory(transaction.category || '');
+      setTransactionType(transaction.transaction_type);
       setDate(transaction.date);
       setErrors({});
       setTouched({});
@@ -70,6 +72,7 @@ export default function EditTransactionModal({
         amount: parseFloat(amount),
         description,
         category: category || undefined,
+        transaction_type: transactionType,
         date,
       });
     } catch (error) {
@@ -80,16 +83,16 @@ export default function EditTransactionModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onCancel} />
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-        <h3 className="text-lg font-semibold mb-4">Редактировать транзакцию</h3>
+      <div className="relative bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-semibold mb-4 text-slate-700 dark:text-gray-50">Редактировать транзакцию</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Сумма *</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сумма *</label>
             <input
               type="number"
               step="0.01"
               min="0.01"
-              className={`w-full border rounded px-3 py-2 ${touched.amount && errors.amount ? 'border-red-500' : ''}`}
+              className={`input ${touched.amount && errors.amount ? 'input-error' : ''}`}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               onBlur={() => handleBlur('amount')}
@@ -97,10 +100,10 @@ export default function EditTransactionModal({
             {touched.amount && <FormError message={errors.amount} />}
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Описание *</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание *</label>
             <input
               type="text"
-              className={`w-full border rounded px-3 py-2 ${touched.description && errors.description ? 'border-red-500' : ''}`}
+              className={`input ${touched.description && errors.description ? 'input-error' : ''}`}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onBlur={() => handleBlur('description')}
@@ -108,9 +111,20 @@ export default function EditTransactionModal({
             {touched.description && <FormError message={errors.description} />}
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Категория</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Тип операции *</label>
             <select
-              className="w-full border rounded px-3 py-2"
+              className="input"
+              value={transactionType}
+              onChange={(e) => setTransactionType(e.target.value as 'income' | 'expense')}
+            >
+              <option value="expense">Расход</option>
+              <option value="income">Доход</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Категория</label>
+            <select
+              className="input"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -123,10 +137,10 @@ export default function EditTransactionModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Дата *</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Дата *</label>
             <input
               type="date"
-              className={`w-full border rounded px-3 py-2 ${touched.date && errors.date ? 'border-red-500' : ''}`}
+              className={`input ${touched.date && errors.date ? 'input-error' : ''}`}
               value={date}
               onChange={(e) => setDate(e.target.value)}
               onBlur={() => handleBlur('date')}
@@ -134,7 +148,7 @@ export default function EditTransactionModal({
             {touched.date && <FormError message={errors.date} />}
           </div>
           {saveError && (
-            <div className="text-red-600 text-sm">
+            <div className="text-red-600 dark:text-red-400 text-sm">
               Ошибка: {saveError}
             </div>
           )}
@@ -142,13 +156,13 @@ export default function EditTransactionModal({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+              className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 border dark:border-dark-50/30 rounded"
             >
               Отмена
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="btn-primary"
             >
               Сохранить
             </button>

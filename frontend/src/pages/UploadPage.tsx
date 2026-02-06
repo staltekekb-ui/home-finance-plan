@@ -146,8 +146,12 @@ export default function UploadPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-lg font-bold text-red-600 dark:text-red-400">
-                        -{result.data.amount.toLocaleString('ru-RU')} ₽
+                      <span className={`text-lg font-bold ${
+                        result.data.transaction_type === 'income'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {result.data.transaction_type === 'income' ? '+' : '-'}{result.data.amount.toLocaleString('ru-RU')} ₽
                       </span>
                       {result.saved ? (
                         <span className="text-green-600 dark:text-green-400 text-sm">Сохранено</span>
