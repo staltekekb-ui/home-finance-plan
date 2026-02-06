@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 
 interface FileWithPreview {
   file: File;
@@ -13,7 +13,11 @@ interface Props {
   error?: string | null;
 }
 
-export default function UploadForm({ onUpload, onUploadMultiple, isLoading, error }: Props) {
+export interface UploadFormRef {
+  clearFiles: () => void;
+}
+
+const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultiple, isLoading, error }, ref) => {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const filesRef = useRef<FileWithPreview[]>([]);
@@ -42,6 +46,15 @@ export default function UploadForm({ onUpload, onUploadMultiple, isLoading, erro
       return prev.filter(f => f.id !== id);
     });
   };
+
+  const clearFiles = useCallback(() => {
+    files.forEach(f => URL.revokeObjectURL(f.preview));
+    setFiles([]);
+  }, [files]);
+
+  useImperativeHandle(ref, () => ({
+    clearFiles,
+  }), [clearFiles]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -177,4 +190,8 @@ export default function UploadForm({ onUpload, onUploadMultiple, isLoading, erro
       )}
     </div>
   );
-}
+});
+
+UploadForm.displayName = 'UploadForm';
+
+export default UploadForm;

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions } from '../api/client';
 import type { ParsedTransaction, TransactionCreate } from '../types';
-import UploadForm from '../components/UploadForm';
+import UploadForm, { type UploadFormRef } from '../components/UploadForm';
 import ManualEntryForm from '../components/ManualEntryForm';
 import EditParsedTransactionModal from '../components/EditParsedTransactionModal';
 
@@ -12,6 +12,7 @@ type TabType = 'screenshot' | 'manual';
 export default function UploadPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const uploadFormRef = useRef<UploadFormRef>(null);
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -114,6 +115,7 @@ export default function UploadPage() {
 
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
     setBatchResults([]);
+    uploadFormRef.current?.clearFiles();
     setSuccessMessage(`Сохранено ${unsavedTransactions.length} транзакций`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
@@ -161,6 +163,7 @@ export default function UploadPage() {
       {activeTab === 'screenshot' && (
         <>
           <UploadForm
+            ref={uploadFormRef}
             onUpload={handleUpload}
             onUploadMultiple={handleBatchUpload}
             isLoading={uploadMutation.isPending || batchUploadMutation.isPending}
