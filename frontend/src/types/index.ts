@@ -41,6 +41,9 @@ export interface MonthlyReport {
   total: number;
   count: number;
   by_category: Record<string, number>;
+  income: number;
+  income_count: number;
+  income_by_category: Record<string, number>;
 }
 
 export interface TransactionFilters {

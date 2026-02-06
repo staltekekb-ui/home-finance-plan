@@ -14,8 +14,10 @@ export default function ReportsPage() {
     queryFn: () => getMonthlyReports(year),
   });
 
-  const yearTotal = reports.reduce((sum, r) => sum + r.total, 0);
-  const totalTransactions = reports.reduce((sum, r) => sum + r.count, 0);
+  const yearExpenses = reports.reduce((sum, r) => sum + r.total, 0);
+  const yearIncome = reports.reduce((sum, r) => sum + r.income, 0);
+  const yearBalance = yearIncome - yearExpenses;
+  const totalTransactions = reports.reduce((sum, r) => sum + r.count + r.income_count, 0);
 
   const handleExport = async () => {
     setExporting(true);
@@ -54,13 +56,29 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="card p-4 sm:p-6">
-        <div className="text-center mb-4 sm:mb-6">
-          <div className="text-sm text-gray-500 dark:text-gray-300">Всего за {year} год</div>
-          <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
-            {yearTotal.toLocaleString('ru-RU')} ₽
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card p-4 sm:p-6">
+          <div className="text-sm text-gray-500 dark:text-gray-300 text-center">Доходы {year}</div>
+          <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 text-center mt-2">
+            +{yearIncome.toLocaleString('ru-RU')} ₽
           </div>
-          <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+        </div>
+        <div className="card p-4 sm:p-6">
+          <div className="text-sm text-gray-500 dark:text-gray-300 text-center">Расходы {year}</div>
+          <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 text-center mt-2">
+            -{yearExpenses.toLocaleString('ru-RU')} ₽
+          </div>
+        </div>
+        <div className="card p-4 sm:p-6">
+          <div className="text-sm text-gray-500 dark:text-gray-300 text-center">Баланс {year}</div>
+          <div className={`text-2xl sm:text-3xl font-bold text-center mt-2 ${
+            yearBalance >= 0
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-red-600 dark:text-red-400'
+          }`}>
+            {yearBalance >= 0 ? '+' : ''}{yearBalance.toLocaleString('ru-RU')} ₽
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-300 mt-1 text-center">
             {totalTransactions} транзакций
           </div>
         </div>
