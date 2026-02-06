@@ -39,7 +39,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return response.json();
 }
 
-export async function uploadScreenshot(file: File): Promise<ParsedTransaction> {
+export async function uploadScreenshot(file: File): Promise<ParsedTransaction[]> {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -59,7 +59,7 @@ export async function uploadScreenshot(file: File): Promise<ParsedTransaction> {
 export interface BatchUploadResult {
   filename: string;
   success: boolean;
-  data: ParsedTransaction | null;
+  data: ParsedTransaction[] | null;
   error: string | null;
 }
 

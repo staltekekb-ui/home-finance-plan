@@ -24,19 +24,25 @@ MOCK_TRANSACTIONS = [
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-async def parse_screenshot(image_path: str) -> ParsedTransaction:
-    """Распознаёт скриншот банковского приложения с автокатегоризацией."""
+async def parse_screenshot(image_path: str) -> list[ParsedTransaction]:
+    """Распознаёт скриншот банковского приложения с автокатегоризацией.
+    Возвращает список транзакций (может быть одна или несколько)."""
 
     if not settings.openrouter_api_key:
-        mock = random.choice(MOCK_TRANSACTIONS)
-        category = MOCK_CATEGORIES.get(mock["description"])
-        return ParsedTransaction(
-            amount=mock["amount"],
-            description=mock["description"],
-            category=category,
-            date=date.today(),
-            raw_text="[MOCK MODE] API ключ не настроен"
-        )
+        # Return 1-3 mock transactions
+        num_transactions = random.randint(1, 3)
+        transactions = []
+        for _ in range(num_transactions):
+            mock = random.choice(MOCK_TRANSACTIONS)
+            category = MOCK_CATEGORIES.get(mock["description"])
+            transactions.append(ParsedTransaction(
+                amount=mock["amount"],
+                description=mock["description"],
+                category=category,
+                date=date.today(),
+                raw_text="[MOCK MODE] API ключ не настроен"
+            ))
+        return transactions
 
     image_data = Path(image_path).read_bytes()
     base64_image = base64.standard_b64encode(image_data).decode("utf-8")
@@ -58,12 +64,20 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
     current_day = today.day
 
     prompt = f"""Проанализируй этот скриншот из банковского приложения.
-Извлеки информацию о транзакции и верни ТОЛЬКО JSON в формате:
-{{
-    "amount": <сумма как число, без валюты>,
-    "description": "<описание/название магазина/получатель>",
-    "date": "<дата в формате YYYY-MM-DD>"
-}}
+Извлеки информацию о ВСЕХ транзакциях на скриншоте и верни ТОЛЬКО JSON массив в формате:
+[
+    {{
+        "amount": <сумма как число, без валюты>,
+        "description": "<описание/название магазина/получатель>",
+        "date": "<дата в формате YYYY-MM-DD>"
+    }},
+    ...
+]
+
+ВАЖНО:
+- Если на скриншоте ОДНА транзакция - верни массив с одним элементом
+- Если на скриншоте НЕСКОЛЬКО транзакций (например, список операций или выписка) - верни массив со всеми транзакциями
+- Если это чек из магазина с несколькими товарами - это ОДНА транзакция, верни общую сумму
 
 ВАЖНЫЕ ПРАВИЛА ДЛЯ ДАТЫ:
 - Сегодня: {today.strftime('%Y-%m-%d')} (год: {current_year}, месяц: {current_month}, день: {current_day})
@@ -73,7 +87,7 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
 - Если видно, что транзакция была вчера/позавчера, вычти соответствующее количество дней от сегодняшней даты
 - НИКОГДА не используй старые года (2024, 2023 и т.д.) если год явно не написан на скриншоте
 
-Верни ТОЛЬКО JSON, без дополнительного текста."""
+Верни ТОЛЬКО JSON массив, без дополнительного текста."""
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(
@@ -127,23 +141,32 @@ async def parse_screenshot(image_path: str) -> ParsedTransaction:
     except json.JSONDecodeError as e:
         print(f"[OCR DEBUG] JSON parsing error: {e}")
         raise ValueError(
-            f"Не удалось распознать транзакцию на изображении. "
+            f"Не удалось распознать транзакции на изображении. "
             f"Убедитесь, что это скриншот банковского приложения с информацией о платеже. "
             f"Ответ модели: {raw_response[:200]}"
         )
 
-    if isinstance(data["date"], str):
-        parsed_date = datetime.strptime(data["date"], "%Y-%m-%d").date()
-    else:
-        parsed_date = date.today()
+    # Ensure data is a list
+    if not isinstance(data, list):
+        # If model returned a single object instead of array, wrap it
+        data = [data]
 
-    description = data["description"]
-    category = categorize(description)
+    transactions = []
+    for item in data:
+        if isinstance(item["date"], str):
+            parsed_date = datetime.strptime(item["date"], "%Y-%m-%d").date()
+        else:
+            parsed_date = date.today()
 
-    return ParsedTransaction(
-        amount=float(data["amount"]),
-        description=description,
-        category=category,
-        date=parsed_date,
-        raw_text=response_text
-    )
+        description = item["description"]
+        category = categorize(description)
+
+        transactions.append(ParsedTransaction(
+            amount=float(item["amount"]),
+            description=description,
+            category=category,
+            date=parsed_date,
+            raw_text=response_text
+        ))
+
+    return transactions

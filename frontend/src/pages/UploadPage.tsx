@@ -12,9 +12,7 @@ export default function UploadPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
-  const [parsed, setParsed] = useState<ParsedTransaction | null>(null);
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
-  const [form, setForm] = useState<Partial<TransactionCreate>>({});
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data: categories = [] } = useQuery({
@@ -31,26 +29,26 @@ export default function UploadPage() {
 
   const uploadMutation = useMutation({
     mutationFn: uploadScreenshot,
-    onSuccess: (data) => {
-      setParsed(data);
-      setBatchResults([]);
-      setForm({
-        amount: data.amount,
-        description: data.description,
-        category: data.category || undefined,
-        date: data.date,
-        raw_text: data.raw_text,
-      });
+    onSuccess: (transactions) => {
+      // Convert array of transactions to batch results format
+      const results = transactions.map(transaction => ({
+        data: transaction,
+        saved: false,
+      }));
+      setBatchResults(results);
     },
   });
 
   const batchUploadMutation = useMutation({
     mutationFn: uploadScreenshotBatch,
     onSuccess: (data) => {
-      setParsed(null);
+      // Flatten all transactions from all files
       const successResults = data.results
-        .filter(r => r.success && r.data)
-        .map(r => ({ data: r.data!, saved: false }));
+        .filter(r => r.success && r.data && r.data.length > 0)
+        .flatMap(r => r.data!.map(transaction => ({
+          data: transaction,
+          saved: false,
+        })));
       setBatchResults(successResults);
     },
   });
@@ -70,32 +68,15 @@ export default function UploadPage() {
   });
 
   const handleUpload = (file: File) => {
-    setParsed(null);
     setBatchResults([]);
-    setForm({});
     setSaveError(null);
     uploadMutation.mutate(file);
   };
 
   const handleBatchUpload = (files: File[]) => {
-    setParsed(null);
     setBatchResults([]);
-    setForm({});
     setSaveError(null);
     batchUploadMutation.mutate(files);
-  };
-
-  const handleSave = () => {
-    setSaveError(null);
-    if (!form.amount || !form.description || !form.date) {
-      setSaveError('Заполните все обязательные поля');
-      return;
-    }
-    if (form.amount <= 0) {
-      setSaveError('Сумма должна быть больше нуля');
-      return;
-    }
-    saveMutation.mutate(form as TransactionCreate);
   };
 
   const handleSaveBatchItem = (index: number, data: ParsedTransaction) => {
@@ -157,80 +138,6 @@ export default function UploadPage() {
             isLoading={uploadMutation.isPending || batchUploadMutation.isPending}
             error={uploadMutation.isError ? uploadMutation.error.message : batchUploadMutation.isError ? batchUploadMutation.error.message : null}
           />
-
-          {parsed && (
-            <div className="card p-4 sm:p-6 space-y-4">
-              <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">Проверьте данные</h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Сумма</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="input"
-                    value={form.amount || ''}
-                    onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={form.description || ''}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
-                    Категория
-                    {parsed?.category && (
-                      <span className="ml-2 text-xs text-green-600 dark:text-green-400">(определено автоматически)</span>
-                    )}
-                  </label>
-                  <select
-                    className="input"
-                    value={form.category || ''}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  >
-                    <option value="">Выберите категорию</option>
-                    {categories.map((cat) => (
-                      <option key={cat.value} value={cat.label}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Дата</label>
-                  <input
-                    type="date"
-                    className="input"
-                    value={form.date || ''}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  />
-                </div>
-
-                <button
-                  onClick={handleSave}
-                  disabled={saveMutation.isPending}
-                  className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saveMutation.isPending ? 'Сохранение...' : 'Сохранить транзакцию'}
-                </button>
-
-                {saveError && (
-                  <div className="text-red-600 dark:text-red-400 text-sm mt-2">
-                    Ошибка: {saveError}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {batchResults.length > 0 && (
             <div className="space-y-4">

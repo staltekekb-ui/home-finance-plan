@@ -13,10 +13,10 @@ settings = get_settings()
 logger = get_logger(__name__)
 
 
-async def process_uploaded_file(file: UploadFile) -> tuple[str, ParsedTransaction | None, str | None]:
-    """Process a single uploaded file and return (filename, parsed_result, error)"""
+async def process_uploaded_file(file: UploadFile) -> tuple[str, List[ParsedTransaction] | None, str | None]:
+    """Process a single uploaded file and return (filename, parsed_results, error)"""
     if not file.content_type or not file.content_type.startswith("image/"):
-        logger.warning(f"Invalid file type: {file.content_type}", extra={"filename": file.filename})
+        logger.warning(f"Invalid file type: {file.content_type}", extra={"original_name": file.filename})
         return (file.filename or "unknown", None, "Файл должен быть изображением")
 
     upload_dir = Path(settings.upload_dir)
@@ -31,20 +31,20 @@ async def process_uploaded_file(file: UploadFile) -> tuple[str, ParsedTransactio
 
     try:
         logger.info(f"Processing screenshot: {file.filename}", extra={"saved_as": filename})
-        parsed = await parse_screenshot(str(file_path))
+        parsed_transactions = await parse_screenshot(str(file_path))
         logger.info(f"Screenshot parsed successfully", extra={
-            "filename": file.filename,
-            "amount": parsed.amount,
-            "category": parsed.category,
+            "original_name": file.filename,
+            "transaction_count": len(parsed_transactions),
         })
-        return (file.filename or filename, parsed, None)
+        return (file.filename or filename, parsed_transactions, None)
     except Exception as e:
-        logger.error(f"Failed to parse screenshot: {str(e)}", extra={"filename": file.filename}, exc_info=True)
+        logger.error(f"Failed to parse screenshot: {str(e)}", extra={"original_name": file.filename}, exc_info=True)
         return (file.filename or filename, None, f"Ошибка распознавания: {str(e)}")
 
 
-@router.post("/upload", response_model=ParsedTransaction)
+@router.post("/upload", response_model=List[ParsedTransaction])
 async def upload_screenshot(file: UploadFile = File(...)):
+    """Upload a single screenshot and extract all transactions from it"""
     if not file.content_type or not file.content_type.startswith("image/"):
         logger.warning(f"Upload rejected: invalid file type", extra={"content_type": file.content_type})
         raise HTTPException(status_code=400, detail="Файл должен быть изображением")
@@ -61,37 +61,40 @@ async def upload_screenshot(file: UploadFile = File(...)):
 
     try:
         logger.info(f"Processing single screenshot", extra={"original_name": file.filename, "saved_as": filename})
-        parsed = await parse_screenshot(str(file_path))
+        parsed_transactions = await parse_screenshot(str(file_path))
         logger.info(f"Screenshot parsed successfully", extra={
-            "amount": parsed.amount,
-            "description": parsed.description,
-            "category": parsed.category,
+            "transaction_count": len(parsed_transactions),
         })
-        return parsed
+        return parsed_transactions
     except Exception as e:
-        logger.error(f"Failed to parse screenshot: {str(e)}", extra={"filename": filename}, exc_info=True)
+        logger.error(f"Failed to parse screenshot: {str(e)}", extra={"saved_as": filename}, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Ошибка распознавания: {str(e)}")
 
 
 @router.post("/upload/batch")
 async def upload_batch(files: List[UploadFile] = File(...)):
-    """Upload multiple screenshots and parse them all"""
+    """Upload multiple screenshots and parse them all. Each screenshot can contain multiple transactions."""
     logger.info(f"Batch upload started", extra={"file_count": len(files)})
     results = []
     success_count = 0
+    total_transactions = 0
+
     for file in files:
-        filename, parsed, error = await process_uploaded_file(file)
-        if parsed:
+        filename, parsed_transactions, error = await process_uploaded_file(file)
+        if parsed_transactions:
             success_count += 1
+            total_transactions += len(parsed_transactions)
         results.append({
             "filename": filename,
-            "success": parsed is not None,
-            "data": parsed.model_dump() if parsed else None,
+            "success": parsed_transactions is not None,
+            "data": [t.model_dump() for t in parsed_transactions] if parsed_transactions else None,
             "error": error,
         })
+
     logger.info(f"Batch upload completed", extra={
-        "total": len(files),
-        "success": success_count,
-        "failed": len(files) - success_count,
+        "total_files": len(files),
+        "success_files": success_count,
+        "failed_files": len(files) - success_count,
+        "total_transactions": total_transactions,
     })
     return {"results": results}
