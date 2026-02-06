@@ -27,8 +27,8 @@ function ConfirmModal({
     <div className="modal-backdrop">
       <div className="fixed inset-0" onClick={onCancel} />
       <div className="modal-content p-6">
-        <h3 className="text-xl font-bold text-slate-700 mb-3">{title}</h3>
-        <p className="text-slate-600 mb-6 leading-relaxed">{message}</p>
+        <h3 className="text-xl font-bold text-slate-700 dark:text-gray-50 mb-3">{title}</h3>
+        <p className="text-slate-600 dark:text-gray-300 mb-6 leading-relaxed">{message}</p>
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
