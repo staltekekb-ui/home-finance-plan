@@ -4,7 +4,13 @@ from typing import Optional
 from enum import Enum
 
 
+class TransactionTypeEnum(str, Enum):
+    income = "income"  # Доход
+    expense = "expense"  # Расход
+
+
 class CategoryEnum(str, Enum):
+    # Расходы
     food = "Еда"
     transport = "Транспорт"
     entertainment = "Развлечения"
@@ -13,13 +19,21 @@ class CategoryEnum(str, Enum):
     shopping = "Покупки"
     education = "Образование"
     cafe = "Кафе и рестораны"
+    cash_withdrawal = "Снятие наличных"
     other = "Другое"
+    # Доходы
+    salary = "Зарплата"
+    transfer = "Перевод от других лиц"
+    freelance = "Фриланс"
+    investment = "Инвестиции"
+    other_income = "Другой доход"
 
 
 class TransactionBase(BaseModel):
     amount: float
     description: str
     category: Optional[str] = None
+    transaction_type: str = "expense"  # "income" or "expense", default to expense for backward compatibility
     date: date
 
 
@@ -32,6 +46,7 @@ class TransactionUpdate(BaseModel):
     amount: Optional[float] = None
     description: Optional[str] = None
     category: Optional[str] = None
+    transaction_type: Optional[str] = None
     date: Optional[date] = None
 
 
@@ -51,6 +66,7 @@ class ParsedTransaction(BaseModel):
     amount: float
     description: str
     category: Optional[str] = None
+    transaction_type: str = "expense"
     date: date
     raw_text: str
 

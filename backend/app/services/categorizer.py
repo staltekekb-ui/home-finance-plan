@@ -1,6 +1,7 @@
-"""Автоматическое определение категории по описанию транзакции."""
+"""Автоматическое определение категории и типа транзакции по описанию."""
 
-CATEGORY_KEYWORDS = {
+# Категории расходов
+EXPENSE_KEYWORDS = {
     "Еда": [
         "пятёрочка", "пятерочка", "магнит", "лента", "перекрёсток", "перекресток",
         "дикси", "ашан", "метро", "окей", "вкусвилл", "азбука вкуса", "мясо",
@@ -40,29 +41,74 @@ CATEGORY_KEYWORDS = {
         "макдоналдс", "mcdonalds", "бургер кинг", "kfc", "сушишоп", "суши",
         "пицца", "додо", "папа джонс", "кофемания", "шоколадница"
     ],
+    "Снятие наличных": [
+        "снятие наличных", "выдача наличных", "cash withdrawal", "atm",
+        "банкомат", "получение наличных", "наличные"
+    ],
+}
+
+# Категории доходов
+INCOME_KEYWORDS = {
+    "Зарплата": [
+        "зарплата", "заработная плата", "оплата труда", "salary", "wage",
+        "начисление з/п", "начисление зарплаты", "выплата зп"
+    ],
+    "Перевод от других лиц": [
+        "перевод", "от", "transfer from", "пополнение", "зачисление от",
+        "поступление от", "перевод по номеру", "с карты"
+    ],
+    "Фриланс": [
+        "фриланс", "freelance", "upwork", "fiverr", "заказ", "проект",
+        "услуги", "выполнение работ"
+    ],
+    "Инвестиции": [
+        "дивиденды", "купон", "dividend", "инвестиции", "акции", "облигации",
+        "доход от инвестиций", "брокер", "тинькофф инвестиции"
+    ],
 }
 
 
-def categorize(description: str) -> str | None:
-    """Определяет категорию по описанию транзакции."""
+def categorize_transaction(description: str) -> tuple[str | None, str]:
+    """
+    Определяет категорию и тип транзакции по описанию.
+    Returns: (category, transaction_type)
+    transaction_type: "income" or "expense"
+    """
     description_lower = description.lower()
 
-    for category, keywords in CATEGORY_KEYWORDS.items():
+    # Check income keywords first
+    for category, keywords in INCOME_KEYWORDS.items():
         for keyword in keywords:
             if keyword in description_lower:
-                return category
+                return (category, "income")
 
-    return None
+    # Check expense keywords
+    for category, keywords in EXPENSE_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in description_lower:
+                return (category, "expense")
+
+    # Default to expense with no category
+    return (None, "expense")
+
+
+# For backward compatibility
+def categorize(description: str) -> str | None:
+    """Определяет категорию по описанию транзакции (старая функция для совместимости)."""
+    category, _ = categorize_transaction(description)
+    return category
 
 
 # Mock категории для тестирования
 MOCK_CATEGORIES = {
-    "Пятёрочка": "Еда",
-    "Яндекс.Такси": "Транспорт",
-    "Ozon": "Покупки",
-    "Лента": "Еда",
-    "Аптека Ригла": "Здоровье",
-    "DNS": "Покупки",
-    "Кофемания": "Кафе и рестораны",
-    "МВидео": "Покупки",
+    "Пятёрочка": ("Еда", "expense"),
+    "Яндекс.Такси": ("Транспорт", "expense"),
+    "Ozon": ("Покупки", "expense"),
+    "Лента": ("Еда", "expense"),
+    "Аптека Ригла": ("Здоровье", "expense"),
+    "DNS": ("Покупки", "expense"),
+    "Кофемания": ("Кафе и рестораны", "expense"),
+    "МВидео": ("Покупки", "expense"),
+    "Зарплата": ("Зарплата", "income"),
+    "Перевод от Иванова": ("Перевод от других лиц", "income"),
 }

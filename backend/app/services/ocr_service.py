@@ -6,7 +6,7 @@ from datetime import date, datetime
 from pathlib import Path
 from app.config import get_settings
 from app.schemas import ParsedTransaction
-from app.services.categorizer import categorize, MOCK_CATEGORIES
+from app.services.categorizer import categorize_transaction, MOCK_CATEGORIES
 
 settings = get_settings()
 
@@ -34,11 +34,13 @@ async def parse_screenshot(image_path: str) -> list[ParsedTransaction]:
         transactions = []
         for _ in range(num_transactions):
             mock = random.choice(MOCK_TRANSACTIONS)
-            category = MOCK_CATEGORIES.get(mock["description"])
+            category_data = MOCK_CATEGORIES.get(mock["description"], (None, "expense"))
+            category, transaction_type = category_data if isinstance(category_data, tuple) else (category_data, "expense")
             transactions.append(ParsedTransaction(
                 amount=mock["amount"],
                 description=mock["description"],
                 category=category,
+                transaction_type=transaction_type,
                 date=date.today(),
                 raw_text="[MOCK MODE] API ключ не настроен"
             ))
@@ -69,12 +71,21 @@ async def parse_screenshot(image_path: str) -> list[ParsedTransaction]:
     {{
         "amount": <сумма как число, без валюты>,
         "description": "<описание/название магазина/получатель>",
+        "transaction_type": "<income или expense>",
         "date": "<дата в формате YYYY-MM-DD>"
     }},
     ...
 ]
 
-ВАЖНО:
+ВАЖНО ПРО ТИП ТРАНЗАКЦИИ:
+- transaction_type должен быть "income" для ДОХОДОВ (зарплата, переводы от других лиц, пополнения)
+- transaction_type должен быть "expense" для РАСХОДОВ (покупки, оплата услуг, снятие наличных)
+- Обрати внимание на знак операции: "+" это доход (income), "-" это расход (expense)
+- Снятие наличных = expense (расход)
+- Зачисление зарплаты = income (доход)
+- Перевод от другого лица = income (доход)
+
+ВАЖНО ПРО КОЛИЧЕСТВО:
 - Если на скриншоте ОДНА транзакция - верни массив с одним элементом
 - Если на скриншоте НЕСКОЛЬКО транзакций (например, список операций или выписка) - верни массив со всеми транзакциями
 - Если это чек из магазина с несколькими товарами - это ОДНА транзакция, верни общую сумму
@@ -159,12 +170,25 @@ async def parse_screenshot(image_path: str) -> list[ParsedTransaction]:
             parsed_date = date.today()
 
         description = item["description"]
-        category = categorize(description)
+        # Get transaction_type from API response or determine from description
+        transaction_type = item.get("transaction_type", "expense")
+
+        # Auto-categorize based on description
+        category, auto_type = categorize_transaction(description)
+
+        # If no category from keywords, try to use what we got from API
+        if category is None:
+            category = item.get("category")
+
+        # Prefer API's transaction_type, but validate with auto-detection
+        if transaction_type not in ["income", "expense"]:
+            transaction_type = auto_type
 
         transactions.append(ParsedTransaction(
             amount=float(item["amount"]),
             description=description,
             category=category,
+            transaction_type=transaction_type,
             date=parsed_date,
             raw_text=response_text
         ))

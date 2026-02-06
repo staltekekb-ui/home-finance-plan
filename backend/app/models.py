@@ -11,6 +11,7 @@ class Transaction(Base):
     amount = Column(Float, nullable=False)
     description = Column(String(500), nullable=False)
     category = Column(String(100), nullable=True)
+    transaction_type = Column(String(20), nullable=False, server_default="expense")  # "income" or "expense"
     date = Column(Date, nullable=False)
     image_path = Column(String(500), nullable=True)
     raw_text = Column(Text, nullable=True)

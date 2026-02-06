@@ -159,7 +159,7 @@ export default function GoalsPage() {
             </h3>
             <input
               type="number"
-              step="100"
+              step="0.01"
               className="input mb-4"
               placeholder="Сумма"
               value={addAmount}
@@ -411,7 +411,7 @@ function GoalForm({ initialData, onSubmit, onCancel, isLoading }: FormProps) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Уже накоплено</label>
           <input
             type="number"
-            step="100"
+            step="0.01"
             min="0"
             className={`input ${touched.currentAmount && errors.currentAmount ? 'input-error' : ''}`}
             value={currentAmount}
