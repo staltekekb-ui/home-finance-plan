@@ -243,16 +243,16 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-lg font-medium">
+    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 space-y-4">
+      <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">
         {initialData ? 'Редактировать бюджет' : 'Новый бюджет'}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Категория *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Категория *</label>
           <select
-            className={`w-full border rounded px-3 py-2 ${touched.category && errors.category ? 'border-red-500' : ''}`}
+            className={`input ${touched.category && errors.category ? 'input-error' : ''}`}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             onBlur={() => handleBlur('category')}
@@ -268,12 +268,12 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
           {touched.category && <FormError message={errors.category} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Месячный лимит *</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Месячный лимит *</label>
           <input
             type="number"
             step="100"
             min="1"
-            className={`w-full border rounded px-3 py-2 ${touched.monthlyLimit && errors.monthlyLimit ? 'border-red-500' : ''}`}
+            className={`input ${touched.monthlyLimit && errors.monthlyLimit ? 'input-error' : ''}`}
             value={monthlyLimit}
             onChange={(e) => setMonthlyLimit(e.target.value)}
             onBlur={() => handleBlur('monthlyLimit')}
@@ -282,12 +282,12 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
           {touched.monthlyLimit && <FormError message={errors.monthlyLimit} />}
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Порог предупреждения (%)</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Порог предупреждения (%)</label>
           <input
             type="number"
             min="1"
             max="100"
-            className={`w-full border rounded px-3 py-2 ${touched.alertThreshold && errors.alertThreshold ? 'border-red-500' : ''}`}
+            className={`input ${touched.alertThreshold && errors.alertThreshold ? 'input-error' : ''}`}
             value={alertThreshold}
             onChange={(e) => setAlertThreshold(e.target.value)}
             onBlur={() => handleBlur('alertThreshold')}
@@ -301,14 +301,14 @@ function BudgetForm({ categories, initialData, onSubmit, onCancel, isLoading }: 
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+          className="btn-secondary"
         >
           Отмена
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Сохранение...' : 'Сохранить'}
         </button>

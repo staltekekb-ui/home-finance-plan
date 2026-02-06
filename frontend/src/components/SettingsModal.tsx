@@ -48,38 +48,38 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-        <h3 className="text-lg font-semibold mb-4">Настройки</h3>
+      <div className="relative bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-50 mb-4">Настройки</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
               Ежемесячный доход
             </label>
             <input
               type="number"
               step="1000"
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={monthlyIncome}
               onChange={(e) => setMonthlyIncome(e.target.value)}
               placeholder="100000"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Используется для расчёта накоплений
             </p>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
               Цель накоплений в месяц
             </label>
             <input
               type="number"
               step="1000"
-              className="w-full border rounded px-3 py-2"
+              className="input"
               value={monthlySavingsGoal}
               onChange={(e) => setMonthlySavingsGoal(e.target.value)}
               placeholder="20000"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Сколько хотите откладывать каждый месяц
             </p>
           </div>
@@ -87,14 +87,14 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded"
+              className="btn-secondary"
             >
               Отмена
             </button>
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {updateMutation.isPending ? 'Сохранение...' : 'Сохранить'}
             </button>
