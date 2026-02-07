@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts, getSavingsGoals, addToSavingsGoal, subtractFromSavingsGoal } from '../api/client';
 import type { ParsedTransaction, TransactionCreate } from '../types';
 import UploadForm, { type UploadFormRef } from '../components/UploadForm';
@@ -7,11 +8,13 @@ import ManualEntryForm from '../components/ManualEntryForm';
 import EditParsedTransactionModal from '../components/EditParsedTransactionModal';
 import SavingsDistributionModal from '../components/SavingsDistributionModal';
 import ExpenseDeductionModal from '../components/ExpenseDeductionModal';
+import AccountSelectionModal from '../components/AccountSelectionModal';
 
 type TabType = 'screenshot' | 'manual';
 
 export default function UploadPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const uploadFormRef = useRef<UploadFormRef>(null);
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
   const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
@@ -19,9 +22,11 @@ export default function UploadPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showDistribution, setShowDistribution] = useState(false);
   const [showExpenseDeduction, setShowExpenseDeduction] = useState(false);
+  const [showAccountSelection, setShowAccountSelection] = useState(false);
   const [availableForSavings, setAvailableForSavings] = useState(0);
   const [totalExpensesForDeduction, setTotalExpensesForDeduction] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(undefined);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -43,16 +48,6 @@ export default function UploadPage() {
     queryFn: () => getSavingsGoals(false),
   });
 
-  // Auto-select first active account
-  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(undefined);
-
-  // Set default account when accounts load
-  useState(() => {
-    if (accounts.length > 0 && selectedAccountId === undefined) {
-      setSelectedAccountId(accounts[0].id);
-    }
-  });
-
   const recentDescriptions = [...new Set(transactions.map(t => t.description))].slice(0, 50);
 
   const uploadMutation = useMutation({
@@ -64,6 +59,10 @@ export default function UploadPage() {
         saved: false,
       }));
       setBatchResults(results);
+      // Show account selection modal after parsing
+      if (accounts.length > 0) {
+        setShowAccountSelection(true);
+      }
     },
   });
 
@@ -78,21 +77,40 @@ export default function UploadPage() {
           saved: false,
         })));
       setBatchResults(successResults);
+      // Show account selection modal after parsing
+      if (accounts.length > 0) {
+        setShowAccountSelection(true);
+      }
     },
   });
 
 
   const handleUpload = (file: File) => {
+    if (accounts.length === 0) {
+      alert('Сначала добавьте счёт');
+      return;
+    }
     setBatchResults([]);
+    setSelectedAccountId(undefined);
     uploadMutation.mutate(file);
   };
 
   const handleBatchUpload = (files: File[]) => {
+    if (accounts.length === 0) {
+      alert('Сначала добавьте счёт');
+      return;
+    }
     setBatchResults([]);
+    setSelectedAccountId(undefined);
     batchUploadMutation.mutate(files);
   };
 
   const handleSaveBatchItem = (index: number, data: ParsedTransaction) => {
+    if (!selectedAccountId) {
+      alert('Выберите счёт для транзакции');
+      setShowAccountSelection(true);
+      return;
+    }
     createTransaction({
       amount: data.amount,
       description: data.description,
@@ -112,6 +130,11 @@ export default function UploadPage() {
   };
 
   const handleManualSave = (data: TransactionCreate) => {
+    if (!selectedAccountId) {
+      alert('Выберите счёт для транзакции');
+      setShowAccountSelection(true);
+      return;
+    }
     createTransaction(data, selectedAccountId).then(() => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
@@ -119,10 +142,18 @@ export default function UploadPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+      setSuccessMessage('Транзакция успешно добавлена');
+      setTimeout(() => setSuccessMessage(null), 3000);
     });
   };
 
   const handleSaveAll = async () => {
+    if (!selectedAccountId) {
+      alert('Выберите счёт для транзакций');
+      setShowAccountSelection(true);
+      return;
+    }
+
     const unsavedTransactions = batchResults.filter(r => !r.saved);
 
     for (const result of unsavedTransactions) {
@@ -230,6 +261,17 @@ export default function UploadPage() {
     }
   };
 
+  const handleAccountSelect = (accountId: number) => {
+    setSelectedAccountId(accountId);
+    setShowAccountSelection(false);
+  };
+
+  const handleAccountSelectionCancel = () => {
+    setShowAccountSelection(false);
+    setBatchResults([]);
+    uploadFormRef.current?.clearFiles();
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Добавить транзакцию</h1>
@@ -265,33 +307,57 @@ export default function UploadPage() {
 
       {activeTab === 'screenshot' && (
         <>
-          {accounts.length > 0 && (
-            <div className="card p-4">
-              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Счёт для зачисления/списания
-              </label>
-              <select
-                className="input"
-                value={selectedAccountId || ''}
-                onChange={(e) => setSelectedAccountId(e.target.value ? parseInt(e.target.value) : undefined)}
-              >
-                <option value="">Без привязки к счёту</option>
-                {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} ({account.balance.toLocaleString('ru-RU')} {account.currency})
-                  </option>
-                ))}
-              </select>
+          {accounts.length === 0 && (
+            <div className="card p-6 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">⚠️</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-700 dark:text-gray-50 mb-2">
+                    Необходимо добавить счёт
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    Прежде чем загружать транзакции, создайте хотя бы один счёт.
+                    Все транзакции будут привязаны к счёту, и баланс будет автоматически пересчитан.
+                  </p>
+                  <button
+                    onClick={() => navigate('/accounts')}
+                    className="btn-primary"
+                  >
+                    Перейти к счетам
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
-          <UploadForm
-            ref={uploadFormRef}
-            onUpload={handleUpload}
-            onUploadMultiple={handleBatchUpload}
-            isLoading={uploadMutation.isPending || batchUploadMutation.isPending}
-            error={uploadMutation.isError ? uploadMutation.error.message : batchUploadMutation.isError ? batchUploadMutation.error.message : null}
-          />
+          {accounts.length > 0 && selectedAccountId && (
+            <div className="card p-4 bg-sage-50 dark:bg-sage-900/20">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Выбран счёт:
+                </span>
+                <span className="font-medium text-slate-700 dark:text-gray-50">
+                  {accounts.find(a => a.id === selectedAccountId)?.name}
+                </span>
+                <button
+                  onClick={() => setShowAccountSelection(true)}
+                  className="text-sm text-sage-600 dark:text-sage-400 hover:underline ml-auto"
+                >
+                  Изменить
+                </button>
+              </div>
+            </div>
+          )}
+
+          {accounts.length > 0 && (
+            <UploadForm
+              ref={uploadFormRef}
+              onUpload={handleUpload}
+              onUploadMultiple={handleBatchUpload}
+              isLoading={uploadMutation.isPending || batchUploadMutation.isPending}
+              error={uploadMutation.isError ? uploadMutation.error.message : batchUploadMutation.isError ? batchUploadMutation.error.message : null}
+            />
+          )}
 
           {batchResults.length > 0 && (
             <div className="space-y-4">
@@ -356,12 +422,70 @@ export default function UploadPage() {
       )}
 
       {activeTab === 'manual' && (
-        <ManualEntryForm
-          categories={categories}
-          recentDescriptions={recentDescriptions}
-          onSave={handleManualSave}
-          isSaving={false}
-        />
+        <>
+          {accounts.length === 0 ? (
+            <div className="card p-6 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">⚠️</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-700 dark:text-gray-50 mb-2">
+                    Необходимо добавить счёт
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    Прежде чем добавлять транзакции, создайте хотя бы один счёт.
+                    Все транзакции будут привязаны к счёту, и баланс будет автоматически пересчитан.
+                  </p>
+                  <button
+                    onClick={() => navigate('/accounts')}
+                    className="btn-primary"
+                  >
+                    Перейти к счетам
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {!selectedAccountId && (
+                <div className="card p-4 bg-blue-50 dark:bg-blue-900/20">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                    Выберите счёт для привязки транзакции:
+                  </p>
+                  <button
+                    onClick={() => setShowAccountSelection(true)}
+                    className="btn-primary"
+                  >
+                    Выбрать счёт
+                  </button>
+                </div>
+              )}
+              {selectedAccountId && (
+                <div className="card p-4 bg-sage-50 dark:bg-sage-900/20">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      Выбран счёт:
+                    </span>
+                    <span className="font-medium text-slate-700 dark:text-gray-50">
+                      {accounts.find(a => a.id === selectedAccountId)?.name}
+                    </span>
+                    <button
+                      onClick={() => setShowAccountSelection(true)}
+                      className="text-sm text-sage-600 dark:text-sage-400 hover:underline ml-auto"
+                    >
+                      Изменить
+                    </button>
+                  </div>
+                </div>
+              )}
+              <ManualEntryForm
+                categories={categories}
+                recentDescriptions={recentDescriptions}
+                onSave={handleManualSave}
+                isSaving={false}
+              />
+            </>
+          )}
+        </>
       )}
 
       <EditParsedTransactionModal
@@ -386,6 +510,13 @@ export default function UploadPage() {
         goals={savingsGoals}
         onDistribute={handleDistributeSavings}
         onSkip={() => setShowDistribution(false)}
+      />
+
+      <AccountSelectionModal
+        isOpen={showAccountSelection}
+        accounts={accounts}
+        onSelect={handleAccountSelect}
+        onCancel={handleAccountSelectionCancel}
       />
     </div>
   );
