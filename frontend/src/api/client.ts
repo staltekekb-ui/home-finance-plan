@@ -135,6 +135,25 @@ export async function deleteTransaction(id: number): Promise<void> {
   await request(`/transactions/${id}`, { method: 'DELETE' });
 }
 
+export interface BulkDeleteParams {
+  transaction_ids?: number[];
+  date_from?: string;
+  date_to?: string;
+  category?: string;
+  account_id?: number;
+  transaction_type?: string;
+}
+
+export async function bulkDeleteTransactions(params: BulkDeleteParams): Promise<{
+  deleted_count: number;
+  affected_accounts: number[];
+}> {
+  return request('/transactions/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
 export async function getCategories(): Promise<Category[]> {
   return request<Category[]>('/transactions/categories');
 }

@@ -19,6 +19,7 @@ export default function RecurringPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState<{text: string; emoji: string} | null>(null);
 
   const { data: payments = [], isLoading } = useQuery({
     queryKey: ['recurring'],
@@ -35,6 +36,15 @@ export default function RecurringPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring'] });
       setShowForm(false);
+
+      const encouragements = [
+        { text: 'Отлично! Повторяющийся платёж настроен! Автоматизация работает на вас! 🎉', emoji: '🔄' },
+        { text: 'Прекрасно! Теперь не забудете про этот платёж! ✨', emoji: '⏰' },
+        { text: 'Супер! Регулярные платежи — шаг к финансовой дисциплине! 💪', emoji: '📅' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage(random);
+      setTimeout(() => setSuccessMessage(null), 5000);
     },
   });
 
@@ -65,6 +75,14 @@ export default function RecurringPage() {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+
+      const encouragements = [
+        { text: 'Платёж выполнен! Всё под контролем! ✅', emoji: '💳' },
+        { text: 'Готово! Транзакция успешно добавлена! 🎯', emoji: '✨' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage(random);
+      setTimeout(() => setSuccessMessage(null), 4000);
     },
   });
 
@@ -82,6 +100,17 @@ export default function RecurringPage() {
           Добавить
         </button>
       </div>
+
+      {successMessage && (
+        <div className="card p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500 animate-scale-in">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{successMessage.emoji}</div>
+            <p className="text-green-800 dark:text-green-200 font-medium flex-1">
+              {successMessage.text}
+            </p>
+          </div>
+        </div>
+      )}
 
       {(showForm || editingPayment) && (
         <RecurringPaymentForm

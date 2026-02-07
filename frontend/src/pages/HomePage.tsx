@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTransactions, getCategories, deleteTransaction, updateTransaction, exportToExcel, createRecurringFromTransaction } from '../api/client';
+import { getTransactions, getCategories, getAccounts, deleteTransaction, updateTransaction, exportToExcel, createRecurringFromTransaction, bulkDeleteTransactions } from '../api/client';
 import type { Transaction, TransactionFilters } from '../types';
 import TransactionList from '../components/TransactionList';
 import ConfirmModal from '../components/ConfirmModal';
 import EditTransactionModal from '../components/EditTransactionModal';
+import BulkDeleteModal from '../components/BulkDeleteModal';
 import HintCard from '../components/HintCard';
 
 export default function HomePage() {
@@ -15,6 +16,10 @@ export default function HomePage() {
   const [exporting, setExporting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [editTarget, setEditTarget] = useState<Transaction | null>(null);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [showDeleteSelected, setShowDeleteSelected] = useState(false);
 
   const handleExport = async () => {
     setExporting(true);
@@ -33,6 +38,11 @@ export default function HomePage() {
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
+  });
+
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: () => getAccounts(true),
   });
 
   const deleteMutation = useMutation({
@@ -73,6 +83,56 @@ export default function HomePage() {
       navigate('/recurring');
     },
   });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: bulkDeleteTransactions,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
+      setShowBulkDelete(false);
+      setShowDeleteSelected(false);
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      alert(`Удалено транзакций: ${data.deleted_count}`);
+    },
+    onError: (error: Error) => {
+      console.error('Failed to bulk delete:', error);
+      alert(`Ошибка удаления: ${error.message}`);
+    },
+  });
+
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === transactions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(transactions.map(t => t.id)));
+    }
+  };
+
+  const handleBulkDelete = (params: any) => {
+    bulkDeleteMutation.mutate(params);
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    bulkDeleteMutation.mutate({ transaction_ids: Array.from(selectedIds) });
+  };
 
   const total = transactions.reduce((sum, t) => sum + t.amount, 0);
 
@@ -155,7 +215,7 @@ export default function HomePage() {
             </select>
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-3">
           <button
             className="text-sm text-sage-600 hover:text-sage-700 dark:text-sage-400 dark:hover:text-sage-300 font-medium"
             onClick={() => setFilters({})}
@@ -168,6 +228,29 @@ export default function HomePage() {
             disabled={exporting || transactions.length === 0}
           >
             {exporting ? 'Экспорт...' : 'Экспорт в Excel'}
+          </button>
+          <button
+            className="text-sm bg-orange-600 dark:bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-700 dark:hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => setShowBulkDelete(true)}
+            disabled={transactions.length === 0}
+          >
+            Массовое удаление
+          </button>
+          <button
+            className={`text-sm px-3 py-1 rounded transition-colors ${
+              selectionMode
+                ? 'bg-sage-600 dark:bg-sage-500 text-white hover:bg-sage-700 dark:hover:bg-sage-600'
+                : 'bg-gray-600 dark:bg-gray-500 text-white hover:bg-gray-700 dark:hover:bg-gray-600'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={() => {
+              setSelectionMode(!selectionMode);
+              if (selectionMode) {
+                setSelectedIds(new Set());
+              }
+            }}
+            disabled={transactions.length === 0}
+          >
+            {selectionMode ? 'Отменить выбор' : 'Выбрать транзакции'}
           </button>
         </div>
       </div>
@@ -189,12 +272,41 @@ export default function HomePage() {
           />
         </div>
       ) : (
-        <TransactionList
-          transactions={transactions}
-          onDelete={(id) => setDeleteTarget(id)}
-          onEdit={(transaction) => setEditTarget(transaction)}
-          onRepeat={(transaction) => repeatMutation.mutate(transaction.id)}
-        />
+        <>
+          {selectionMode && (
+            <div className="card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-600 dark:text-gray-300">
+                    Выбrano: <span className="font-bold">{selectedIds.size}</span> из {transactions.length}
+                  </span>
+                  <button
+                    className="text-sm text-sage-600 hover:text-sage-700 dark:text-sage-400 dark:hover:text-sage-300 font-medium"
+                    onClick={handleSelectAll}
+                  >
+                    {selectedIds.size === transactions.length ? 'Снять выбор' : 'Выбрать все'}
+                  </button>
+                </div>
+                <button
+                  className="text-sm bg-red-600 dark:bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  onClick={() => setShowDeleteSelected(true)}
+                  disabled={selectedIds.size === 0}
+                >
+                  Удалить выбранные ({selectedIds.size})
+                </button>
+              </div>
+            </div>
+          )}
+          <TransactionList
+            transactions={transactions}
+            onDelete={(id) => setDeleteTarget(id)}
+            onEdit={(transaction) => setEditTarget(transaction)}
+            onRepeat={(transaction) => repeatMutation.mutate(transaction.id)}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            selectionMode={selectionMode}
+          />
+        </>
       )}
 
       <ConfirmModal
@@ -214,6 +326,26 @@ export default function HomePage() {
         categories={categories}
         onSave={(id, data) => updateMutation.mutate({ id, data })}
         onCancel={() => setEditTarget(null)}
+      />
+
+      <BulkDeleteModal
+        isOpen={showBulkDelete}
+        categories={categories}
+        accounts={accounts}
+        onDelete={handleBulkDelete}
+        onCancel={() => setShowBulkDelete(false)}
+        isDeleting={bulkDeleteMutation.isPending}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteSelected}
+        title={`Удалить выбранные транзакции?`}
+        message={`Вы собираетесь удалить ${selectedIds.size} транзакций. Эта операция необратима.`}
+        confirmText="Удалить"
+        cancelText="Отмена"
+        danger
+        onConfirm={handleDeleteSelected}
+        onCancel={() => setShowDeleteSelected(false)}
       />
     </div>
   );

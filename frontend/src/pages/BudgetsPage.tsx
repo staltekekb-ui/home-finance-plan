@@ -18,6 +18,7 @@ export default function BudgetsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetStatus | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState<{text: string; emoji: string} | null>(null);
 
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['budgets-status'],
@@ -38,6 +39,16 @@ export default function BudgetsPage() {
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setShowForm(false);
+
+      const encouragements = [
+        { text: 'Отлично! Бюджет создан! Теперь расходы под контролем! 💪', emoji: '📊' },
+        { text: 'Прекрасно! Планирование бюджета — ключ к финансовой свободе! ✨', emoji: '🎯' },
+        { text: 'Браво! Вы на пути к разумному управлению деньгами! 🎉', emoji: '💼' },
+        { text: 'Супер! Следите за лимитами и достигайте целей! 🚀', emoji: '📈' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage(random);
+      setTimeout(() => setSuccessMessage(null), 5000);
     },
   });
 
@@ -48,6 +59,14 @@ export default function BudgetsPage() {
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setEditingBudget(null);
+
+      const encouragements = [
+        { text: 'Бюджет обновлён! Продолжайте контролировать расходы! 👍', emoji: '✅' },
+        { text: 'Изменения сохранены! Вы мудро управляете деньгами! 💡', emoji: '🎯' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage(random);
+      setTimeout(() => setSuccessMessage(null), 5000);
     },
   });
 
@@ -75,6 +94,17 @@ export default function BudgetsPage() {
           Добавить
         </button>
       </div>
+
+      {successMessage && (
+        <div className="card p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500 animate-scale-in">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{successMessage.emoji}</div>
+            <p className="text-green-800 dark:text-green-200 font-medium flex-1">
+              {successMessage.text}
+            </p>
+          </div>
+        </div>
+      )}
 
       {budgets.length > 0 && (
         <div className="card p-6">

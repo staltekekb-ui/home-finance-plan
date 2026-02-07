@@ -11,6 +11,7 @@ from app.schemas import (
     TransactionResponse,
     MonthlyReport,
     CategoryEnum,
+    BulkDeleteRequest,
 )
 from app.logging_config import get_logger
 
@@ -180,4 +181,89 @@ def check_duplicates(
         "total_checked": len(transactions),
         "duplicates_found": len(duplicates),
         "duplicates": duplicates,
+    }
+
+
+@router.post("/bulk-delete")
+def bulk_delete_transactions(
+    request: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+):
+    """Массовое удаление транзакций по критериям или списку ID.
+
+    Может удалять транзакции:
+    - По списку ID (transaction_ids)
+    - По фильтрам (date_from, date_to, category, account_id, transaction_type)
+
+    Возвращает количество удаленных транзакций и обновленные балансы счетов.
+    """
+    logger.info(f"Bulk delete request", extra={
+        "transaction_ids": request.transaction_ids,
+        "date_from": str(request.date_from) if request.date_from else None,
+        "date_to": str(request.date_to) if request.date_to else None,
+        "category": request.category,
+        "account_id": request.account_id,
+        "transaction_type": request.transaction_type,
+    })
+
+    query = db.query(Transaction)
+
+    # Если указаны конкретные ID, используем их
+    if request.transaction_ids:
+        query = query.filter(Transaction.id.in_(request.transaction_ids))
+    else:
+        # Иначе используем фильтры
+        if request.date_from:
+            query = query.filter(Transaction.date >= request.date_from)
+        if request.date_to:
+            query = query.filter(Transaction.date <= request.date_to)
+        if request.category:
+            query = query.filter(Transaction.category == request.category)
+        if request.account_id:
+            query = query.filter(Transaction.account_id == request.account_id)
+        if request.transaction_type:
+            query = query.filter(Transaction.transaction_type == request.transaction_type)
+
+    # Получаем транзакции для пересчета балансов
+    transactions_to_delete = query.all()
+
+    if not transactions_to_delete:
+        logger.info("No transactions found to delete")
+        return {
+            "deleted_count": 0,
+            "affected_accounts": []
+        }
+
+    # Группируем транзакции по счетам для пересчета балансов
+    accounts_affected = {}
+    for transaction in transactions_to_delete:
+        if transaction.account_id:
+            if transaction.account_id not in accounts_affected:
+                accounts_affected[transaction.account_id] = {"income": 0, "expense": 0}
+
+            if transaction.transaction_type == "income":
+                accounts_affected[transaction.account_id]["income"] += transaction.amount
+            else:
+                accounts_affected[transaction.account_id]["expense"] += transaction.amount
+
+    # Удаляем транзакции
+    deleted_count = query.delete(synchronize_session=False)
+
+    # Пересчитываем балансы счетов
+    for account_id, amounts in accounts_affected.items():
+        account = db.query(Account).filter(Account.id == account_id).first()
+        if account:
+            # Откатываем изменения: убираем доходы, возвращаем расходы
+            account.balance -= amounts["income"]
+            account.balance += amounts["expense"]
+
+    db.commit()
+
+    logger.info(f"Bulk deleted {deleted_count} transactions", extra={
+        "affected_accounts": list(accounts_affected.keys())
+    })
+
+    return {
+        "deleted_count": deleted_count,
+        "affected_accounts": list(accounts_affected.keys())
     }

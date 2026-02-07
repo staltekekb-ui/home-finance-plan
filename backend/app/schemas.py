@@ -258,3 +258,13 @@ class DashboardWidgets(BaseModel):
     budgets: list[BudgetStatus]
     goals: list[SavingsGoalResponse]
     savings_status: Optional[MonthlySavingsStatus] = None
+
+
+# Bulk delete
+class BulkDeleteRequest(BaseModel):
+    transaction_ids: Optional[list[int]] = None
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    category: Optional[str] = None
+    account_id: Optional[int] = None
+    transaction_type: Optional[str] = None

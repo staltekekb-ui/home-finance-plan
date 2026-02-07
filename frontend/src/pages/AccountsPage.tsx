@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   getAccounts,
   createAccount,
   updateAccount,
   deleteAccount,
   getTotalBalance,
+  getSavingsGoals,
 } from '../api/client';
 import type { Account, AccountCreate } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
@@ -31,9 +33,11 @@ const accountColors = [
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState<{text: string; emoji: string; showGoalsHint?: boolean} | null>(null);
 
   const { data: accounts = [], isLoading } = useQuery({
     queryKey: ['accounts'],
@@ -45,6 +49,11 @@ export default function AccountsPage() {
     queryFn: getTotalBalance,
   });
 
+  const { data: savingsGoals = [] } = useQuery({
+    queryKey: ['savings-goals'],
+    queryFn: () => getSavingsGoals(false),
+  });
+
   const createMutation = useMutation({
     mutationFn: createAccount,
     onSuccess: () => {
@@ -52,6 +61,20 @@ export default function AccountsPage() {
       queryClient.invalidateQueries({ queryKey: ['total-balance'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setShowForm(false);
+
+      // Show success message with encouragement
+      const wasFirstAccount = accounts.length === 0;
+      const encouragements = [
+        { text: 'Отлично! Счёт успешно создан! 🎉', emoji: '💳' },
+        { text: 'Прекрасно! Теперь баланс будет автоматически отслеживаться! ✨', emoji: '📊' },
+        { text: 'Супер! Вы на верном пути к контролю финансов! 💪', emoji: '🎯' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage({
+        ...random,
+        showGoalsHint: wasFirstAccount && savingsGoals.length === 0
+      });
+      setTimeout(() => setSuccessMessage(null), 8000);
     },
   });
 
@@ -90,6 +113,29 @@ export default function AccountsPage() {
           Добавить
         </button>
       </div>
+
+      {successMessage && (
+        <div className="space-y-4">
+          <div className="card p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500 animate-scale-in">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">{successMessage.emoji}</div>
+              <p className="text-green-800 dark:text-green-200 font-medium flex-1">
+                {successMessage.text}
+              </p>
+            </div>
+          </div>
+          {successMessage.showGoalsHint && (
+            <HintCard
+              icon="🎯"
+              title="Следующий шаг — создайте цели накопления!"
+              message="Теперь, когда у вас есть счёт, создайте финансовые цели! Приложение поможет вам систематически откладывать деньги и отслеживать прогресс достижения мечты."
+              actionText="Создать первую цель"
+              onAction={() => navigate('/goals')}
+              variant="info"
+            />
+          )}
+        </div>
+      )}
 
       {totalBalance && (
         <div className="card p-6">

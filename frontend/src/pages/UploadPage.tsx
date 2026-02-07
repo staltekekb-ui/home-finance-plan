@@ -195,7 +195,24 @@ export default function UploadPage() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['budgets-status'] });
-      setBatchResults(prev => prev.map((r, i) => i === index ? { ...r, saved: true } : r));
+
+      // Mark as saved and check if all transactions are now saved
+      setBatchResults(prev => {
+        const updated = prev.map((r, i) => i === index ? { ...r, saved: true } : r);
+        const allSaved = updated.every(r => r.saved);
+
+        // If all transactions are saved, clear the list
+        if (allSaved) {
+          setTimeout(() => {
+            setBatchResults([]);
+            uploadFormRef.current?.clearFiles();
+            setSuccessMessage('Все транзакции успешно сохранены');
+            setTimeout(() => setSuccessMessage(null), 3000);
+          }, 500);
+        }
+
+        return updated;
+      });
     });
   };
 
@@ -342,6 +359,14 @@ export default function UploadPage() {
     uploadFormRef.current?.clearFiles();
   };
 
+  const handleExcludeTransaction = (index: number) => {
+    setBatchResults(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleExcludeAllDuplicates = () => {
+    setBatchResults(prev => prev.filter(r => !r.isDuplicate));
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-gray-50">Добавить транзакцию</h1>
@@ -455,14 +480,24 @@ export default function UploadPage() {
                     </p>
                   )}
                 </div>
-                {batchResults.some(r => !r.saved) && (
-                  <button
-                    onClick={handleSaveAll}
-                    className="btn-primary"
-                  >
-                    Сохранить все
-                  </button>
-                )}
+                <div className="flex gap-3">
+                  {batchResults.some(r => r.isDuplicate && !r.saved) && (
+                    <button
+                      onClick={handleExcludeAllDuplicates}
+                      className="px-4 py-2 bg-orange-600 dark:bg-orange-500 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors"
+                    >
+                      Исключить все дубликаты
+                    </button>
+                  )}
+                  {batchResults.some(r => !r.saved) && (
+                    <button
+                      onClick={handleSaveAll}
+                      className="btn-primary"
+                    >
+                      Сохранить все
+                    </button>
+                  )}
+                </div>
               </div>
               {checkingDuplicates && (
                 <div className="card p-4 bg-blue-50 dark:bg-blue-900/20">
@@ -477,31 +512,18 @@ export default function UploadPage() {
               {batchResults.map((result, index) => (
                 <div
                   key={index}
-                  className={`card p-4 ${result.saved ? 'opacity-50' : ''} ${result.isDuplicate ? 'border-2 border-orange-400 dark:border-orange-600' : ''}`}
+                  className={`card p-4 ${result.saved ? 'opacity-50' : ''} ${result.isDuplicate ? 'border-l-4 border-orange-500 dark:border-orange-600' : ''}`}
                 >
-                  {result.isDuplicate && !result.saved && (
-                    <div className="mb-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <div className="text-xl">⚠️</div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-orange-800 dark:text-orange-300 mb-1">
-                            Возможный дубликат!
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-                            Найдено {result.duplicateInfo.similar_count} похожих транзакций в базе:
-                          </p>
-                          {result.duplicateInfo.similar_transactions.map((similar: any, idx: number) => (
-                            <div key={idx} className="text-xs text-gray-600 dark:text-gray-300 ml-2">
-                              • {similar.date} - {similar.amount.toLocaleString('ru-RU')} ₽ - {similar.description}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-slate-700 dark:text-gray-50">{result.data.description}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-slate-700 dark:text-gray-50">{result.data.description}</div>
+                        {result.isDuplicate && !result.saved && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded">
+                            ⚠️ Дубликат
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500 dark:text-gray-300">
                         {result.data.date} • {result.data.category || 'Без категории'}
                       </div>
@@ -518,6 +540,14 @@ export default function UploadPage() {
                         <span className="text-green-600 dark:text-green-400 text-sm">Сохранено</span>
                       ) : (
                         <div className="flex gap-2">
+                          {result.isDuplicate && (
+                            <button
+                              onClick={() => handleExcludeTransaction(index)}
+                              className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 px-3 py-1 border border-orange-400 dark:border-orange-600 rounded"
+                            >
+                              Исключить
+                            </button>
+                          )}
                           <button
                             onClick={() => setEditingIndex(index)}
                             className="text-sm text-slate-600 dark:text-gray-300 hover:text-sage-600 dark:hover:text-sage-400 px-3 py-1 border border-slate-300 dark:border-dark-50/30 rounded"

@@ -7,9 +7,20 @@ interface Props {
   onDelete: (id: number) => void;
   onEdit: (transaction: Transaction) => void;
   onRepeat?: (transaction: Transaction) => void;
+  selectedIds?: Set<number>;
+  onToggleSelect?: (id: number) => void;
+  selectionMode?: boolean;
 }
 
-function TransactionList({ transactions, onDelete, onEdit, onRepeat }: Props) {
+function TransactionList({
+  transactions,
+  onDelete,
+  onEdit,
+  onRepeat,
+  selectedIds,
+  onToggleSelect,
+  selectionMode = false,
+}: Props) {
   const handleDelete = useCallback((id: number) => () => onDelete(id), [onDelete]);
   const handleEdit = useCallback((transaction: Transaction) => () => onEdit(transaction), [onEdit]);
   const handleRepeat = useCallback(
@@ -26,6 +37,9 @@ function TransactionList({ transactions, onDelete, onEdit, onRepeat }: Props) {
           onDelete={handleDelete(transaction.id)}
           onEdit={handleEdit(transaction)}
           onRepeat={handleRepeat(transaction)}
+          isSelected={selectedIds?.has(transaction.id)}
+          onToggleSelect={onToggleSelect ? () => onToggleSelect(transaction.id) : undefined}
+          selectionMode={selectionMode}
         />
       ))}
     </div>

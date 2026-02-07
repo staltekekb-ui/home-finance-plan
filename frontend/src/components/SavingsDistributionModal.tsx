@@ -17,12 +17,10 @@ export default function SavingsDistributionModal({
   onSkip,
 }: Props) {
   const [distributions, setDistributions] = useState<Record<number, string>>({});
-  const [autoDistribute, setAutoDistribute] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setDistributions({});
-      setAutoDistribute(false);
     }
   }, [isOpen]);
 
@@ -52,7 +50,6 @@ export default function SavingsDistributionModal({
     });
 
     setDistributions(newDistributions);
-    setAutoDistribute(true);
   };
 
   const handleDistribute = () => {

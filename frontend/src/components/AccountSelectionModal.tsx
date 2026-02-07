@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Account } from '../types';
 
 interface Props {
@@ -9,9 +9,14 @@ interface Props {
 }
 
 export default function AccountSelectionModal({ isOpen, accounts, onSelect, onCancel }: Props) {
-  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(
-    accounts.length > 0 ? accounts[0].id : undefined
-  );
+  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(undefined);
+
+  // Update selected account when modal opens or accounts change
+  useEffect(() => {
+    if (isOpen && accounts.length > 0) {
+      setSelectedAccountId(accounts[0].id);
+    }
+  }, [isOpen, accounts]);
 
   if (!isOpen) return null;
 
