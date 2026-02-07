@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts, getSavingsGoals, addToSavingsGoal, subtractFromSavingsGoal } from '../api/client';
+import { uploadScreenshot, uploadScreenshotBatch, createTransaction, getCategories, getTransactions, getAccounts, getSavingsGoals, addToSavingsGoal, subtractFromSavingsGoal, checkDuplicateTransactions } from '../api/client';
 import type { ParsedTransaction, TransactionCreate } from '../types';
 import UploadForm, { type UploadFormRef } from '../components/UploadForm';
 import ManualEntryForm from '../components/ManualEntryForm';
@@ -18,7 +18,7 @@ export default function UploadPage() {
   const navigate = useNavigate();
   const uploadFormRef = useRef<UploadFormRef>(null);
   const [activeTab, setActiveTab] = useState<TabType>('screenshot');
-  const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean }>>([]);
+  const [batchResults, setBatchResults] = useState<Array<{ data: ParsedTransaction; saved: boolean; isDuplicate?: boolean; duplicateInfo?: any }>>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showDistribution, setShowDistribution] = useState(false);
@@ -28,6 +28,7 @@ export default function UploadPage() {
   const [totalExpensesForDeduction, setTotalExpensesForDeduction] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(undefined);
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -53,13 +54,47 @@ export default function UploadPage() {
 
   const uploadMutation = useMutation({
     mutationFn: uploadScreenshot,
-    onSuccess: (transactions) => {
+    onSuccess: async (transactions) => {
       // Convert array of transactions to batch results format
       const results = transactions.map(transaction => ({
         data: transaction,
         saved: false,
       }));
-      setBatchResults(results);
+
+      // Check for duplicates
+      setCheckingDuplicates(true);
+      try {
+        const duplicateCheck = await checkDuplicateTransactions(
+          transactions.map(t => ({
+            amount: t.amount,
+            description: t.description,
+            category: t.category || undefined,
+            transaction_type: t.transaction_type,
+            date: t.date,
+          }))
+        );
+
+        // Mark duplicates
+        const resultsWithDuplicates = results.map((result, idx) => {
+          const duplicate = duplicateCheck.duplicates.find(d => d.index === idx);
+          if (duplicate) {
+            return {
+              ...result,
+              isDuplicate: true,
+              duplicateInfo: duplicate,
+            };
+          }
+          return result;
+        });
+
+        setBatchResults(resultsWithDuplicates);
+      } catch (error) {
+        console.error('Failed to check duplicates:', error);
+        setBatchResults(results);
+      } finally {
+        setCheckingDuplicates(false);
+      }
+
       // Show account selection modal after parsing
       if (accounts.length > 0) {
         setShowAccountSelection(true);
@@ -69,7 +104,7 @@ export default function UploadPage() {
 
   const batchUploadMutation = useMutation({
     mutationFn: uploadScreenshotBatch,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Flatten all transactions from all files
       const successResults = data.results
         .filter(r => r.success && r.data && r.data.length > 0)
@@ -77,7 +112,41 @@ export default function UploadPage() {
           data: transaction,
           saved: false,
         })));
-      setBatchResults(successResults);
+
+      // Check for duplicates
+      setCheckingDuplicates(true);
+      try {
+        const allTransactions = successResults.map(r => ({
+          amount: r.data.amount,
+          description: r.data.description,
+          category: r.data.category || undefined,
+          transaction_type: r.data.transaction_type,
+          date: r.data.date,
+        }));
+
+        const duplicateCheck = await checkDuplicateTransactions(allTransactions);
+
+        // Mark duplicates
+        const resultsWithDuplicates = successResults.map((result, idx) => {
+          const duplicate = duplicateCheck.duplicates.find(d => d.index === idx);
+          if (duplicate) {
+            return {
+              ...result,
+              isDuplicate: true,
+              duplicateInfo: duplicate,
+            };
+          }
+          return result;
+        });
+
+        setBatchResults(resultsWithDuplicates);
+      } catch (error) {
+        console.error('Failed to check duplicates:', error);
+        setBatchResults(successResults);
+      } finally {
+        setCheckingDuplicates(false);
+      }
+
       // Show account selection modal after parsing
       if (accounts.length > 0) {
         setShowAccountSelection(true);
@@ -376,9 +445,16 @@ export default function UploadPage() {
           {batchResults.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">
-                  Распознанные транзакции ({batchResults.filter(r => !r.saved).length} осталось)
-                </h2>
+                <div>
+                  <h2 className="text-lg font-medium text-slate-700 dark:text-gray-50">
+                    Распознанные транзакции ({batchResults.filter(r => !r.saved).length} осталось)
+                  </h2>
+                  {batchResults.some(r => r.isDuplicate) && (
+                    <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                      ⚠️ Найдено {batchResults.filter(r => r.isDuplicate).length} возможных дубликатов
+                    </p>
+                  )}
+                </div>
                 {batchResults.some(r => !r.saved) && (
                   <button
                     onClick={handleSaveAll}
@@ -388,11 +464,41 @@ export default function UploadPage() {
                   </button>
                 )}
               </div>
+              {checkingDuplicates && (
+                <div className="card p-4 bg-blue-50 dark:bg-blue-900/20">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin text-2xl">🔄</div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Проверка дубликатов транзакций...
+                    </p>
+                  </div>
+                </div>
+              )}
               {batchResults.map((result, index) => (
                 <div
                   key={index}
-                  className={`card p-4 ${result.saved ? 'opacity-50' : ''}`}
+                  className={`card p-4 ${result.saved ? 'opacity-50' : ''} ${result.isDuplicate ? 'border-2 border-orange-400 dark:border-orange-600' : ''}`}
                 >
+                  {result.isDuplicate && !result.saved && (
+                    <div className="mb-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <div className="text-xl">⚠️</div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-orange-800 dark:text-orange-300 mb-1">
+                            Возможный дубликат!
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+                            Найдено {result.duplicateInfo.similar_count} похожих транзакций в базе:
+                          </p>
+                          {result.duplicateInfo.similar_transactions.map((similar: any, idx: number) => (
+                            <div key={idx} className="text-xs text-gray-600 dark:text-gray-300 ml-2">
+                              • {similar.date} - {similar.amount.toLocaleString('ru-RU')} ₽ - {similar.description}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-slate-700 dark:text-gray-50">{result.data.description}</div>

@@ -131,3 +131,53 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     db.delete(db_transaction)
     db.commit()
     return {"message": "Транзакция удалена"}
+
+
+@router.post("/check-duplicates")
+def check_duplicates(
+    transactions: list[TransactionCreate],
+    db: Session = Depends(get_db),
+):
+    """Проверяет список транзакций на наличие дубликатов в базе данных.
+
+    Возвращает список с индексами дубликатов и информацией о похожих транзакциях.
+    Дубликаты определяются по: дате, сумме и описанию (с допуском ±1 день и ±0.01 ₽)
+    """
+    logger.info(f"Checking {len(transactions)} transactions for duplicates")
+
+    duplicates = []
+
+    for idx, transaction in enumerate(transactions):
+        # Проверяем транзакции с такой же датой (±1 день), суммой (±0.01) и похожим описанием
+        similar_transactions = db.query(Transaction).filter(
+            Transaction.date >= transaction.date.replace(day=max(1, transaction.date.day - 1)),
+            Transaction.date <= transaction.date.replace(day=min(31, transaction.date.day + 1)),
+            Transaction.amount >= transaction.amount - 0.01,
+            Transaction.amount <= transaction.amount + 0.01,
+            Transaction.description.ilike(f"%{transaction.description}%"),
+            Transaction.transaction_type == transaction.transaction_type,
+        ).all()
+
+        if similar_transactions:
+            duplicates.append({
+                "index": idx,
+                "transaction": transaction.model_dump(),
+                "similar_count": len(similar_transactions),
+                "similar_transactions": [
+                    {
+                        "id": t.id,
+                        "date": str(t.date),
+                        "amount": t.amount,
+                        "description": t.description,
+                        "category": t.category,
+                    }
+                    for t in similar_transactions[:3]  # Показываем максимум 3 похожих
+                ]
+            })
+
+    logger.info(f"Found {len(duplicates)} potential duplicates")
+    return {
+        "total_checked": len(transactions),
+        "duplicates_found": len(duplicates),
+        "duplicates": duplicates,
+    }

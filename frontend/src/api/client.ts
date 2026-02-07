@@ -102,6 +102,28 @@ export async function createTransaction(data: TransactionCreate, accountId?: num
   });
 }
 
+export async function checkDuplicateTransactions(transactions: TransactionCreate[]): Promise<{
+  total_checked: number;
+  duplicates_found: number;
+  duplicates: Array<{
+    index: number;
+    transaction: TransactionCreate;
+    similar_count: number;
+    similar_transactions: Array<{
+      id: number;
+      date: string;
+      amount: number;
+      description: string;
+      category?: string;
+    }>;
+  }>;
+}> {
+  return request('/transactions/check-duplicates', {
+    method: 'POST',
+    body: JSON.stringify(transactions),
+  });
+}
+
 export async function updateTransaction(id: number, data: Partial<TransactionCreate>): Promise<Transaction> {
   return request<Transaction>(`/transactions/${id}`, {
     method: 'PUT',
