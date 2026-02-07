@@ -9,6 +9,7 @@ import EditParsedTransactionModal from '../components/EditParsedTransactionModal
 import SavingsDistributionModal from '../components/SavingsDistributionModal';
 import ExpenseDeductionModal from '../components/ExpenseDeductionModal';
 import AccountSelectionModal from '../components/AccountSelectionModal';
+import HintCard from '../components/HintCard';
 
 type TabType = 'screenshot' | 'manual';
 
@@ -308,25 +309,38 @@ export default function UploadPage() {
       {activeTab === 'screenshot' && (
         <>
           {accounts.length === 0 && (
-            <div className="card p-6 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
-              <div className="flex items-start gap-4">
-                <div className="text-3xl">⚠️</div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-700 dark:text-gray-50 mb-2">
-                    Необходимо добавить счёт
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Прежде чем загружать транзакции, создайте хотя бы один счёт.
-                    Все транзакции будут привязаны к счёту, и баланс будет автоматически пересчитан.
-                  </p>
-                  <button
-                    onClick={() => navigate('/accounts')}
-                    className="btn-primary"
-                  >
-                    Перейти к счетам
-                  </button>
+            <div className="space-y-4">
+              <div className="card p-6 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
+                <div className="flex items-start gap-4">
+                  <div className="text-3xl">⚠️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-slate-700 dark:text-gray-50 mb-2">
+                      Необходимо добавить счёт
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      Прежде чем загружать транзакции, создайте хотя бы один счёт.
+                      Все транзакции будут привязаны к счёту, и баланс будет автоматически пересчитан.
+                    </p>
+                    <button
+                      onClick={() => navigate('/accounts')}
+                      className="btn-primary"
+                    >
+                      Перейти к счетам
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              {savingsGoals.length === 0 && (
+                <HintCard
+                  icon="🎯"
+                  title="Создайте цели накопления"
+                  message="После создания счёта, настройте цели накопления! Это поможет вам систематически откладывать деньги на важные покупки и следить за прогрессом достижения финансовых целей."
+                  actionText="Перейти к целям"
+                  onAction={() => navigate('/goals')}
+                  variant="info"
+                />
+              )}
             </div>
           )}
 
@@ -424,25 +438,38 @@ export default function UploadPage() {
       {activeTab === 'manual' && (
         <>
           {accounts.length === 0 ? (
-            <div className="card p-6 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
-              <div className="flex items-start gap-4">
-                <div className="text-3xl">⚠️</div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-700 dark:text-gray-50 mb-2">
-                    Необходимо добавить счёт
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Прежде чем добавлять транзакции, создайте хотя бы один счёт.
-                    Все транзакции будут привязаны к счёту, и баланс будет автоматически пересчитан.
-                  </p>
-                  <button
-                    onClick={() => navigate('/accounts')}
-                    className="btn-primary"
-                  >
-                    Перейти к счетам
-                  </button>
+            <div className="space-y-4">
+              <div className="card p-6 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
+                <div className="flex items-start gap-4">
+                  <div className="text-3xl">⚠️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-slate-700 dark:text-gray-50 mb-2">
+                      Необходимо добавить счёт
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      Прежде чем добавлять транзакции, создайте хотя бы один счёт.
+                      Все транзакции будут привязаны к счёту, и баланс будет автоматически пересчитан.
+                    </p>
+                    <button
+                      onClick={() => navigate('/accounts')}
+                      className="btn-primary"
+                    >
+                      Перейти к счетам
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              {savingsGoals.length === 0 && (
+                <HintCard
+                  icon="💡"
+                  title="Совет: создайте цели накопления"
+                  message="Финансовые цели помогают оставаться мотивированным и систематически откладывать средства. Установите цели, и приложение будет помогать вам распределять остатки по целям."
+                  actionText="Создать цель"
+                  onAction={() => navigate('/goals')}
+                  variant="info"
+                />
+              )}
             </div>
           ) : (
             <>

@@ -25,6 +25,7 @@ export default function GoalsPage() {
   const [addAmount, setAddAmount] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<{text: string; emoji: string} | null>(null);
 
   const { data: goals = [], isLoading } = useQuery({
     queryKey: ['savings-goals', showCompleted],
@@ -47,6 +48,16 @@ export default function GoalsPage() {
       queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setShowForm(false);
+
+      const encouragements = [
+        { text: 'Отличное начало! Вы на пути к своей цели! 🎉', emoji: '🎯' },
+        { text: 'Прекрасное решение! Каждая цель приближает вас к мечте! ✨', emoji: '🌟' },
+        { text: 'Вы молодец! Планирование — первый шаг к успеху! 💪', emoji: '🚀' },
+        { text: 'Супер! Теперь следите за прогрессом и идите к цели! 🎊', emoji: '🏆' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage(random);
+      setTimeout(() => setSuccessMessage(null), 5000);
     },
   });
 
@@ -63,11 +74,22 @@ export default function GoalsPage() {
   const addMutation = useMutation({
     mutationFn: ({ id, amount }: { id: number; amount: number }) =>
       addToSavingsGoal(id, amount),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['savings-goals'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       setAddAmountTarget(null);
       setAddAmount('');
+
+      const encouragements = [
+        { text: `Отлично! Вы добавили ${variables.amount.toLocaleString('ru-RU')} ₽ к цели! Так держать! 💰`, emoji: '✨' },
+        { text: `Браво! Ещё ${variables.amount.toLocaleString('ru-RU')} ₽ приближают вас к мечте! 🌟`, emoji: '🎯' },
+        { text: `Невероятно! Вы становитесь ближе к цели на ${variables.amount.toLocaleString('ru-RU')} ₽! 🚀`, emoji: '💪' },
+        { text: `Вы на правильном пути! +${variables.amount.toLocaleString('ru-RU')} ₽ к успеху! 🎊`, emoji: '🏆' },
+        { text: `Прекрасная дисциплина! ${variables.amount.toLocaleString('ru-RU')} ₽ в копилку! Так держать! 💎`, emoji: '⭐' },
+      ];
+      const random = encouragements[Math.floor(Math.random() * encouragements.length)];
+      setSuccessMessage(random);
+      setTimeout(() => setSuccessMessage(null), 5000);
     },
   });
 
@@ -99,6 +121,17 @@ export default function GoalsPage() {
           </button>
         </div>
       </div>
+
+      {successMessage && (
+        <div className="card p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500 animate-scale-in">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{successMessage.emoji}</div>
+            <p className="text-green-800 dark:text-green-200 font-medium flex-1">
+              {successMessage.text}
+            </p>
+          </div>
+        </div>
+      )}
 
       {savingsStatus && settings?.monthly_income && (
         <MonthlySavingsWidget status={savingsStatus} />

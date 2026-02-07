@@ -54,6 +54,20 @@ export default function ExpenseDeductionModal({
       <div className="fixed inset-0 bg-black/50" onClick={onSkip} />
       <div className="relative bg-white dark:bg-dark-100 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
+          <div className="mb-4 p-4 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-400 dark:border-orange-600 rounded">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">😔</div>
+              <div>
+                <h4 className="font-semibold text-slate-700 dark:text-gray-50 mb-1">
+                  Внимание! Списание с целей
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Списание средств с целей отдаляет вас от мечты. Помните: каждый рубль, сохранённый на цели, приближает вас к её достижению. Тратьте накопленное только на то, для чего копили! 💪
+                </p>
+              </div>
+            </div>
+          </div>
+
           <h3 className="text-xl font-bold text-slate-700 dark:text-gray-50 mb-2">
             Списать расходы с целей накоплений
           </h3>

@@ -6,6 +6,7 @@ import type { Transaction, TransactionFilters } from '../types';
 import TransactionList from '../components/TransactionList';
 import ConfirmModal from '../components/ConfirmModal';
 import EditTransactionModal from '../components/EditTransactionModal';
+import HintCard from '../components/HintCard';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -174,8 +175,18 @@ export default function HomePage() {
       {isLoading ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>
       ) : transactions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-300">
-          Нет транзакций. Загрузите первый скриншот!
+        <div className="space-y-4">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-300">
+            Нет транзакций. Загрузите первый скриншот!
+          </div>
+          <HintCard
+            icon="📸"
+            title="Начните с добавления транзакций"
+            message="Загрузите скриншот из банковского приложения или PDF выгрузку, и система автоматически распознает все транзакции. Можно также добавить вручную!"
+            actionText="Добавить транзакцию"
+            onAction={() => navigate('/upload')}
+            variant="info"
+          />
         </div>
       ) : (
         <TransactionList

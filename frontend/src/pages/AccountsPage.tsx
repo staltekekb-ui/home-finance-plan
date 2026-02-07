@@ -10,6 +10,7 @@ import {
 import type { Account, AccountCreate } from '../types';
 import ConfirmModal from '../components/ConfirmModal';
 import FormError from '../components/FormError';
+import HintCard from '../components/HintCard';
 import { validateRequired, hasErrors, ValidationErrors } from '../utils/validation';
 
 const accountTypeLabels: Record<string, string> = {
@@ -118,10 +119,24 @@ export default function AccountsPage() {
       )}
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-300">Загрузка...</div>
       ) : activeAccounts.length === 0 && inactiveAccounts.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          Нет счетов. Создайте первый!
+        <div className="space-y-4">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-300">
+            Нет счетов. Создайте первый!
+          </div>
+          <HintCard
+            icon="💳"
+            title="Начните с создания счёта"
+            message="Счета помогают отслеживать деньги на разных картах и в наличных. Создайте счёт 'Основная карта' или 'Наличные' и начните учёт финансов!"
+            variant="info"
+          />
+          <HintCard
+            icon="📊"
+            title="Зачем нужны счета?"
+            message="Привязывая транзакции к счетам, вы всегда будете знать точный баланс каждой карты или кошелька. Баланс автоматически пересчитывается при добавлении доходов и расходов."
+            variant="success"
+          />
         </div>
       ) : (
         <>
