@@ -4,6 +4,7 @@ interface FileWithPreview {
   file: File;
   preview: string;
   id: string;
+  isPdf: boolean;
 }
 
 interface Props {
@@ -28,19 +29,25 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
   }, [files]);
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
-    const fileArray = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
-    const newFileObjects: FileWithPreview[] = fileArray.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    }));
+    const fileArray = Array.from(newFiles).filter(f =>
+      f.type.startsWith('image/') || f.type === 'application/pdf'
+    );
+    const newFileObjects: FileWithPreview[] = fileArray.map(file => {
+      const isPdf = file.type === 'application/pdf';
+      return {
+        file,
+        preview: isPdf ? '' : URL.createObjectURL(file),
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        isPdf,
+      };
+    });
     setFiles(prev => [...prev, ...newFileObjects]);
   }, []);
 
   const removeFile = (id: string) => {
     setFiles(prev => {
       const toRemove = prev.find(f => f.id === id);
-      if (toRemove) {
+      if (toRemove && !toRemove.isPdf && toRemove.preview) {
         URL.revokeObjectURL(toRemove.preview);
       }
       return prev.filter(f => f.id !== id);
@@ -48,7 +55,11 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
   };
 
   const clearFiles = useCallback(() => {
-    files.forEach(f => URL.revokeObjectURL(f.preview));
+    files.forEach(f => {
+      if (!f.isPdf && f.preview) {
+        URL.revokeObjectURL(f.preview);
+      }
+    });
     setFiles([]);
   }, [files]);
 
@@ -86,15 +97,15 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
       const items = e.clipboardData?.items;
       if (!items) return;
 
-      const imageFiles: File[] = [];
+      const acceptedFiles: File[] = [];
       for (const item of items) {
-        if (item.type.startsWith('image/')) {
+        if (item.type.startsWith('image/') || item.type === 'application/pdf') {
           const file = item.getAsFile();
-          if (file) imageFiles.push(file);
+          if (file) acceptedFiles.push(file);
         }
       }
-      if (imageFiles.length > 0) {
-        addFiles(imageFiles);
+      if (acceptedFiles.length > 0) {
+        addFiles(acceptedFiles);
       }
     };
 
@@ -105,7 +116,11 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
   useEffect(() => {
     return () => {
       // Use ref to get current files on unmount
-      filesRef.current.forEach(f => URL.revokeObjectURL(f.preview));
+      filesRef.current.forEach(f => {
+        if (!f.isPdf && f.preview) {
+          URL.revokeObjectURL(f.preview);
+        }
+      });
     };
   }, []);
 
@@ -129,7 +144,7 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
       >
         <input
           type="file"
-          accept="image/*"
+          accept="image/*,.pdf"
           multiple
           onChange={handleFileChange}
           className="hidden"
@@ -140,7 +155,7 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
             htmlFor="file-input"
             className="cursor-pointer text-sage-600 hover:text-sage-700 dark:text-sage-400 dark:hover:text-sage-300 block"
           >
-            Выберите скриншоты из банковского приложения
+            Выберите скриншоты или PDF выгрузку из банковского приложения
           </label>
           <p className="text-sm text-gray-500 dark:text-gray-300">
             Или перетащите файлы сюда, или вставьте из буфера (Ctrl+V)
@@ -153,11 +168,22 @@ const UploadForm = forwardRef<UploadFormRef, Props>(({ onUpload, onUploadMultipl
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {files.map((f) => (
               <div key={f.id} className="relative group">
-                <img
-                  src={f.preview}
-                  alt="Preview"
-                  className="w-full h-24 object-cover rounded border border-gray-300 dark:border-dark-50/30"
-                />
+                {f.isPdf ? (
+                  <div className="w-full h-24 flex items-center justify-center rounded border border-gray-300 dark:border-dark-50/30 bg-gray-50 dark:bg-dark-50/10">
+                    <div className="text-center">
+                      <div className="text-3xl mb-1">📄</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300 px-1 truncate">
+                        {f.file.name}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    src={f.preview}
+                    alt="Preview"
+                    className="w-full h-24 object-cover rounded border border-gray-300 dark:border-dark-50/30"
+                  />
+                )}
                 <button
                   onClick={() => removeFile(f.id)}
                   className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"

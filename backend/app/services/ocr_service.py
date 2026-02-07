@@ -2,6 +2,7 @@ import random
 import base64
 import json
 import httpx
+import pdfplumber
 from datetime import date, datetime
 from pathlib import Path
 from app.config import get_settings
@@ -199,6 +200,170 @@ async def parse_screenshot(image_path: str) -> list[ParsedTransaction]:
             transaction_type=transaction_type,
             date=parsed_date,
             raw_text=response_text
+        ))
+
+    return transactions
+
+
+async def parse_pdf(pdf_path: str) -> list[ParsedTransaction]:
+    """Распознаёт PDF выгрузку из банковского приложения с автокатегоризацией.
+    Возвращает список транзакций."""
+
+    if not settings.openrouter_api_key:
+        # Return 2-5 mock transactions for PDF
+        num_transactions = random.randint(2, 5)
+        transactions = []
+        for _ in range(num_transactions):
+            mock = random.choice(MOCK_TRANSACTIONS)
+            category_data = MOCK_CATEGORIES.get(mock["description"], (None, "expense"))
+            category, transaction_type = category_data if isinstance(category_data, tuple) else (category_data, "expense")
+            transactions.append(ParsedTransaction(
+                amount=mock["amount"],
+                description=mock["description"],
+                category=category,
+                transaction_type=transaction_type,
+                date=date.today(),
+                raw_text="[MOCK MODE] API ключ не настроен - PDF выгрузка"
+            ))
+        return transactions
+
+    # Extract text from PDF
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            text_content = []
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    text_content.append(text)
+            full_text = "\n\n".join(text_content)
+    except Exception as e:
+        raise ValueError(f"Не удалось прочитать PDF файл: {str(e)}")
+
+    if not full_text.strip():
+        raise ValueError("PDF файл не содержит текста или текст не удалось извлечь")
+
+    # Get current date for context
+    today = date.today()
+    current_year = today.year
+    current_month = today.month
+    current_day = today.day
+
+    prompt = f"""Проанализируй эту выгрузку из банковского приложения (PDF).
+Извлеки информацию о ВСЕХ транзакциях из текста и верни ТОЛЬКО JSON массив в формате:
+[
+    {{
+        "amount": <сумма как число, без валюты>,
+        "description": "<описание/название магазина/получатель>",
+        "transaction_type": "<income или expense>",
+        "date": "<дата в формате YYYY-MM-DD>"
+    }},
+    ...
+]
+
+ВАЖНО ПРО ОПИСАНИЕ (description):
+- Используй официальное название магазина/компании/получателя (например: "Пятёрочка", "Яндекс.Такси", "Ozon")
+- Для переводов укажи "Перевод от [имя]" для входящих или "Перевод [имя]" для исходящих
+- Для зарплаты укажи "Зарплата" или "Заработная плата"
+- Для снятия наличных укажи "Снятие наличных" или "Выдача наличных"
+- Для внесения наличных укажи "Внесение наличных" или "Пополнение наличными"
+- Сохраняй оригинальные названия компаний как они есть
+
+ВАЖНО ПРО ТИП ТРАНЗАКЦИИ:
+- transaction_type должен быть "income" для ДОХОДОВ (зарплата, переводы от других лиц, пополнения)
+- transaction_type должен быть "expense" для РАСХОДОВ (покупки, оплата услуг, снятие наличных, переводы другим)
+- Обрати внимание на знак операции: "+" это доход (income), "-" это расход (expense)
+- Снятие наличных = expense (расход)
+- Зачисление зарплаты = income (доход)
+- Перевод от другого лица = income (доход)
+- Перевод другому лицу = expense (расход)
+
+ВАЖНЫЕ ПРАВИЛА ДЛЯ ДАТЫ:
+- Сегодня: {today.strftime('%Y-%m-%d')} (год: {current_year}, месяц: {current_month}, день: {current_day})
+- Если в выгрузке указан только день и месяц, используй ТЕКУЩИЙ ГОД {current_year}
+- Если указана дата в прошлом месяце, вычисли правильную дату
+- НИКОГДА не используй старые года (2024, 2023 и т.д.) если год явно не написан в выгрузке
+
+ТЕКСТ ИЗ PDF:
+{full_text[:4000]}
+
+Верни ТОЛЬКО JSON массив, без дополнительного текста."""
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            OPENROUTER_URL,
+            headers={
+                "Authorization": f"Bearer {settings.openrouter_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": settings.openrouter_model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "max_tokens": 2048,
+            }
+        )
+        response.raise_for_status()
+        result = response.json()
+
+    response_text = result["choices"][0]["message"]["content"].strip()
+    raw_response = response_text
+
+    # Log the raw response for debugging
+    print(f"[PDF DEBUG] Raw response from API: {raw_response}")
+
+    if response_text.startswith("```"):
+        response_text = response_text.split("```")[1]
+        if response_text.startswith("json"):
+            response_text = response_text[4:]
+        response_text = response_text.strip()
+
+    print(f"[PDF DEBUG] Cleaned response: {response_text}")
+
+    try:
+        data = json.loads(response_text)
+        print(f"[PDF DEBUG] Parsed data: {data}")
+    except json.JSONDecodeError as e:
+        print(f"[PDF DEBUG] JSON parsing error: {e}")
+        raise ValueError(
+            f"Не удалось распознать транзакции в PDF файле. "
+            f"Убедитесь, что это выгрузка из банковского приложения с транзакциями. "
+            f"Ответ модели: {raw_response[:200]}"
+        )
+
+    # Ensure data is a list
+    if not isinstance(data, list):
+        data = [data]
+
+    transactions = []
+    for item in data:
+        if isinstance(item["date"], str):
+            parsed_date = datetime.strptime(item["date"], "%Y-%m-%d").date()
+        else:
+            parsed_date = date.today()
+
+        description = item["description"]
+        transaction_type = item.get("transaction_type", "expense")
+
+        # Auto-categorize based on description
+        category, auto_type = categorize_transaction(description)
+
+        if category is None:
+            category = item.get("category")
+
+        if transaction_type not in ["income", "expense"]:
+            transaction_type = auto_type
+
+        transactions.append(ParsedTransaction(
+            amount=float(item["amount"]),
+            description=description,
+            category=category,
+            transaction_type=transaction_type,
+            date=parsed_date,
+            raw_text=f"PDF: {full_text[:500]}..."
         ))
 
     return transactions
