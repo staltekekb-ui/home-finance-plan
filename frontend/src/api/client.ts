@@ -332,7 +332,15 @@ export async function deleteAccount(id: number): Promise<void> {
   await request(`/accounts/${id}`, { method: 'DELETE' });
 }
 
-export async function getTotalBalance(): Promise<{ total: number; by_currency: Record<string, number> }> {
+export async function getTotalBalance(): Promise<{
+  total: number;
+  debit_total?: number;
+  credit_debt?: number;
+  net_position?: number;
+  by_currency: Record<string, number>;
+  debit_by_currency?: Record<string, number>;
+  credit_by_currency?: Record<string, number>;
+}> {
   return request('/accounts/total-balance');
 }
 

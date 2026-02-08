@@ -156,21 +156,41 @@ export interface MonthlySavingsStatus {
 export interface Account {
   id: number;
   name: string;
-  account_type: 'cash' | 'card' | 'savings';
+  account_type: 'cash' | 'card' | 'savings' | 'credit_card';
   balance: number;
   currency: string;
   color: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string | null;
+  // Credit card fields
+  credit_limit: number | null;
+  interest_rate: number | null;
+  billing_day: number | null;
+  grace_period_days: number | null;
+  minimum_payment_percent: number | null;
+  last_statement_date: string | null;
+  payment_due_date: string | null;
+  card_last_digits: string | null;
+  card_keywords: string | null;
 }
 
 export interface AccountCreate {
   name: string;
-  account_type: 'cash' | 'card' | 'savings';
+  account_type: 'cash' | 'card' | 'savings' | 'credit_card';
   balance?: number;
   currency?: string;
   color?: string;
+  // Credit card fields
+  credit_limit?: number;
+  interest_rate?: number;
+  billing_day?: number;
+  grace_period_days?: number;
+  minimum_payment_percent?: number;
+  last_statement_date?: string;
+  payment_due_date?: string;
+  card_last_digits?: string;
+  card_keywords?: string;
 }
 
 // Dashboard

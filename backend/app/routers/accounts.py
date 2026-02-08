@@ -34,22 +34,50 @@ def get_accounts(
 
 @router.get("/total-balance")
 def get_total_balance(db: Session = Depends(get_db)):
-    """Get total balance across all active accounts"""
-    total = db.query(func.sum(Account.balance)).filter(
-        Account.is_active == True
+    """Get total balance across all active accounts, separating debit and credit"""
+    # Debit accounts (cash, card, savings) - positive balance is money you have
+    debit_total = db.query(func.sum(Account.balance)).filter(
+        Account.is_active == True,
+        Account.account_type.in_(['cash', 'card', 'savings'])
     ).scalar() or 0
 
-    # Group by currency
-    by_currency = db.query(
+    # Credit cards - negative balance is debt
+    credit_debt = db.query(func.sum(Account.balance)).filter(
+        Account.is_active == True,
+        Account.account_type == 'credit_card'
+    ).scalar() or 0
+    # Convert to positive number for debt display
+    credit_debt_abs = abs(credit_debt) if credit_debt < 0 else 0
+
+    # Net position (total money - total debt)
+    net_position = debit_total + credit_debt
+
+    # Group by currency for debit accounts
+    debit_by_currency = db.query(
         Account.currency,
         func.sum(Account.balance).label('total')
     ).filter(
-        Account.is_active == True
+        Account.is_active == True,
+        Account.account_type.in_(['cash', 'card', 'savings'])
+    ).group_by(Account.currency).all()
+
+    # Group by currency for credit cards
+    credit_by_currency = db.query(
+        Account.currency,
+        func.sum(Account.balance).label('total')
+    ).filter(
+        Account.is_active == True,
+        Account.account_type == 'credit_card'
     ).group_by(Account.currency).all()
 
     return {
-        "total": total,
-        "by_currency": {curr: amount for curr, amount in by_currency},
+        "total": debit_total,  # For backward compatibility
+        "debit_total": debit_total,
+        "credit_debt": credit_debt_abs,
+        "net_position": net_position,
+        "by_currency": {curr: amount for curr, amount in debit_by_currency},
+        "debit_by_currency": {curr: amount for curr, amount in debit_by_currency},
+        "credit_by_currency": {curr: abs(amount) if amount < 0 else 0 for curr, amount in credit_by_currency},
     }
 
 

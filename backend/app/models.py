@@ -77,12 +77,23 @@ class Account(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(200), nullable=False)
-    account_type = Column(String(50), nullable=False)  # cash, card, savings
+    account_type = Column(String(50), nullable=False)  # cash, card, savings, credit_card
     balance = Column(Float, default=0)
     currency = Column(String(10), default="RUB")
     color = Column(String(20), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Credit card specific fields (nullable for non-credit accounts)
+    credit_limit = Column(Float, nullable=True)  # Кредитный лимит
+    interest_rate = Column(Float, nullable=True)  # Процентная ставка (годовых)
+    billing_day = Column(Integer, nullable=True)  # День выставления счёта (1-31)
+    grace_period_days = Column(Integer, nullable=True)  # Беспроцентный период (дней)
+    minimum_payment_percent = Column(Float, nullable=True)  # Минимальный платёж (%)
+    last_statement_date = Column(Date, nullable=True)  # Дата последней выписки
+    payment_due_date = Column(Date, nullable=True)  # Дата следующего платежа
+    card_last_digits = Column(String(4), nullable=True)  # Последние 4 цифры карты (для идентификации)
+    card_keywords = Column(String(500), nullable=True)  # Ключевые слова для идентификации (JSON string)
 
     transactions = relationship("Transaction", back_populates="account")

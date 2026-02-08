@@ -215,13 +215,23 @@ class MonthlySavingsStatus(BaseModel):
 # Accounts
 class AccountBase(BaseModel):
     name: str
-    account_type: str  # cash, card, savings
+    account_type: str  # cash, card, savings, credit_card
     currency: Optional[str] = "RUB"
     color: Optional[str] = None
 
 
 class AccountCreate(AccountBase):
     balance: Optional[float] = 0
+    # Credit card specific fields (optional)
+    credit_limit: Optional[float] = None
+    interest_rate: Optional[float] = None
+    billing_day: Optional[int] = None
+    grace_period_days: Optional[int] = None
+    minimum_payment_percent: Optional[float] = None
+    last_statement_date: Optional[date] = None
+    payment_due_date: Optional[date] = None
+    card_last_digits: Optional[str] = None
+    card_keywords: Optional[str] = None
 
 
 class AccountUpdate(BaseModel):
@@ -231,6 +241,16 @@ class AccountUpdate(BaseModel):
     currency: Optional[str] = None
     color: Optional[str] = None
     is_active: Optional[bool] = None
+    # Credit card fields
+    credit_limit: Optional[float] = None
+    interest_rate: Optional[float] = None
+    billing_day: Optional[int] = None
+    grace_period_days: Optional[int] = None
+    minimum_payment_percent: Optional[float] = None
+    last_statement_date: Optional[date] = None
+    payment_due_date: Optional[date] = None
+    card_last_digits: Optional[str] = None
+    card_keywords: Optional[str] = None
 
 
 class AccountResponse(AccountBase):
@@ -239,6 +259,16 @@ class AccountResponse(AccountBase):
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
+    # Credit card fields
+    credit_limit: Optional[float] = None
+    interest_rate: Optional[float] = None
+    billing_day: Optional[int] = None
+    grace_period_days: Optional[int] = None
+    minimum_payment_percent: Optional[float] = None
+    last_statement_date: Optional[date] = None
+    payment_due_date: Optional[date] = None
+    card_last_digits: Optional[str] = None
+    card_keywords: Optional[str] = None
 
     class Config:
         from_attributes = True
