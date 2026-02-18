@@ -1,0 +1,888 @@
+{
+  "info": {
+    "name": "Home Finance Plan API",
+    "description": "Полная коллекция API для приложения Home Finance Plan",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Accounts (Счета)",
+      "item": [
+        {
+          "name": "Get All Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts"],
+              "query": [
+                {
+                  "key": "active_only",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Total Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/total-balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "total-balance"]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Новый счёт\",\n  \"account_type\": \"card\",\n  \"currency\": \"RUB\",\n  \"balance\": 0,\n  \"color\": \"blue\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts"]
+            }
+          }
+        },
+        {
+          "name": "Create Credit Card Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Кредитная карта\",\n  \"account_type\": \"credit_card\",\n  \"currency\": \"RUB\",\n  \"balance\": 0,\n  \"color\": \"purple\",\n  \"is_active\": true,\n  \"credit_limit\": 100000,\n  \"interest_rate\": 19.9,\n  \"billing_day\": 15,\n  \"grace_period_days\": 55,\n  \"card_last_digits\": \"1234\",\n  \"card_keywords\": \"Tinkoff,Platinum\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts"]
+            }
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Обновлённый счёт\",\n  \"balance\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Adjust Balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1/adjust-balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1", "adjust-balance"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions (Транзакции)",
+      "item": [
+        {
+          "name": "Get All Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": true
+                },
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "disabled": true
+                },
+                {
+                  "key": "date_from",
+                  "value": "2026-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "2026-12-31",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "food",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "account_id",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "date",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "desc",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1500.00,\n  \"description\": \"Покупка продуктов\",\n  \"category\": \"food\",\n  \"date\": \"2026-02-17\",\n  \"account_id\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Update Transaction",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2000.00,\n  \"description\": \"Обновлённая транзакция\",\n  \"category\": \"shopping\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Check Duplicates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"amount\": 1500.00,\n    \"description\": \"Покупка продуктов\",\n    \"date\": \"2026-02-17\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/check-duplicates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "check-duplicates"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Delete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/bulk-delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "bulk-delete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload (Загрузка)",
+      "item": [
+        {
+          "name": "Upload Screenshot/PDF",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Batch Upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "upload", "batch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard (Дашборд)",
+      "item": [
+        {
+          "name": "Get Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Get Widgets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/widgets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "widgets"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports (Отчёты)",
+      "item": [
+        {
+          "name": "Get Monthly Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/monthly?year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "monthly"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Export (Экспорт)",
+      "item": [
+        {
+          "name": "Export to Excel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "export", "excel"],
+              "query": [
+                {
+                  "key": "date_from",
+                  "value": "2026-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "2026-12-31",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "food",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recurring (Регулярные платежи)",
+      "item": [
+        {
+          "name": "Get All Recurring",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring"],
+              "query": [
+                {
+                  "key": "active_only",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recurring by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Recurring Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"description\": \"Подписка на сервис\",\n  \"category\": \"entertainment\",\n  \"frequency\": \"monthly\",\n  \"next_date\": \"2026-03-01\",\n  \"day_of_month\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring"]
+            }
+          }
+        },
+        {
+          "name": "Update Recurring Payment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 6000,\n  \"description\": \"Обновлённый платёж\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring", "1"]
+            }
+          }
+        },
+        {
+          "name": "Execute Recurring Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring/1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring", "1", "execute"]
+            }
+          }
+        },
+        {
+          "name": "Create from Transaction",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring/from-transaction/1?frequency=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring", "from-transaction", "1"],
+              "query": [
+                {
+                  "key": "frequency",
+                  "value": "monthly"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Recurring Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recurring/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recurring", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Budgets (Бюджеты)",
+      "item": [
+        {
+          "name": "Get All Budgets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/budgets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "budgets"]
+            }
+          }
+        },
+        {
+          "name": "Get Budget by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/budgets/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "budgets", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Budgets Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/budgets/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "budgets", "status"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "2",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Budget",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"food\",\n  \"monthly_limit\": 30000,\n  \"alert_threshold\": 80\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/budgets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "budgets"]
+            }
+          }
+        },
+        {
+          "name": "Update Budget",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthly_limit\": 35000,\n  \"alert_threshold\": 90\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/budgets/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "budgets", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Budget",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/budgets/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "budgets", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Savings (Накопления)",
+      "item": [
+        {
+          "name": "Get All Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals"],
+              "query": [
+                {
+                  "key": "include_completed",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Goal by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Monthly Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/monthly-status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "monthly-status"]
+            }
+          }
+        },
+        {
+          "name": "Create Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Отпуск\",\n  \"target_amount\": 200000,\n  \"current_amount\": 0,\n  \"target_date\": \"2026-07-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals"]
+            }
+          }
+        },
+        {
+          "name": "Update Goal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Отпуск в Турции\",\n  \"target_amount\": 250000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals", "1"]
+            }
+          }
+        },
+        {
+          "name": "Add to Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals/1/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals", "1", "add"]
+            }
+          }
+        },
+        {
+          "name": "Subtract from Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals/1/subtract",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals", "1", "subtract"]
+            }
+          }
+        },
+        {
+          "name": "Delete Goal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/savings/goals/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "savings", "goals", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings (Настройки)",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthly_income\": 150000,\n  \"monthly_savings_goal\": 30000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
