@@ -218,6 +218,7 @@ class AccountBase(BaseModel):
     account_type: str  # cash, card, savings, credit_card
     currency: Optional[str] = "RUB"
     color: Optional[str] = None
+    description: Optional[str] = None
 
 
 class AccountCreate(AccountBase):
@@ -240,6 +241,7 @@ class AccountUpdate(BaseModel):
     balance: Optional[float] = None
     currency: Optional[str] = None
     color: Optional[str] = None
+    description: Optional[str] = None
     is_active: Optional[bool] = None
     # Credit card fields
     credit_limit: Optional[float] = None

@@ -81,6 +81,7 @@ class Account(Base):
     balance = Column(Float, default=0)
     currency = Column(String(10), default="RUB")
     color = Column(String(20), nullable=True)
+    description = Column(String(500), nullable=True)  # Заметка / описание счёта
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
