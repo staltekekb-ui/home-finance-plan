@@ -61,6 +61,26 @@ def wait_for_app(url: str, timeout: int = 180) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# CLI options
+# ---------------------------------------------------------------------------
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--headed",
+        action="store_true",
+        default=False,
+        help="Run browser in headed (visible) mode",
+    )
+    parser.addoption(
+        "--slowmo",
+        type=int,
+        default=0,
+        help="Slow down Playwright actions by N milliseconds (useful with --headed)",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Session-scoped fixtures
 # ---------------------------------------------------------------------------
 
@@ -103,10 +123,12 @@ def docker_env():
 
 
 @pytest.fixture(scope="session")
-def browser_session(docker_env):
-    """Single headless Chromium browser for the whole test session."""
+def browser_session(request, docker_env):
+    """Single Chromium browser for the whole test session."""
+    headed = request.config.getoption("--headed")
+    slow_mo = request.config.getoption("--slowmo")
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
+        browser = pw.chromium.launch(headless=not headed, slow_mo=slow_mo)
         yield browser
         browser.close()
 
