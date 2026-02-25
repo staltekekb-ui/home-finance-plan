@@ -44,12 +44,17 @@ class TransactionCreate(TransactionBase):
     raw_text: Optional[str] = None
 
 
+# Alias to avoid Pydantic v2 name collision: field named 'date' shadows type 'date'
+# when get_type_hints() resolves Optional[date] inside TransactionUpdate.
+_date_type = date
+
+
 class TransactionUpdate(BaseModel):
     amount: Optional[float] = None
     description: Optional[str] = None
     category: Optional[str] = None
     transaction_type: Optional[str] = None
-    date: Optional[date] = None
+    date: Optional[_date_type] = None
 
 
 class TransactionResponse(TransactionBase):
