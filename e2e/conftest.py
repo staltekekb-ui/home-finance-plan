@@ -61,26 +61,6 @@ def wait_for_app(url: str, timeout: int = 180) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# CLI options
-# ---------------------------------------------------------------------------
-
-
-def pytest_addoption(parser):
-    parser.addoption(
-        "--headed",
-        action="store_true",
-        default=False,
-        help="Run browser in headed (visible) mode",
-    )
-    parser.addoption(
-        "--slowmo",
-        type=int,
-        default=0,
-        help="Slow down Playwright actions by N milliseconds (useful with --headed)",
-    )
-
-
-# ---------------------------------------------------------------------------
 # Session-scoped fixtures
 # ---------------------------------------------------------------------------
 
